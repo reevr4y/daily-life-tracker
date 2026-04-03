@@ -612,4 +612,273 @@ body {
   }
   .welcome-name { font-size: 1.3rem; }
   .welcome-message { font-size: 0.875rem; }
+  .exp-popup-card { padding: 1.5rem 1.25rem; }
+  .exp-popup-icon { font-size: 2.5rem; }
+  .exp-popup-title { font-size: 1.8rem; }
+}
+
+/* ─── EXP Popup ─── */
+.exp-popup-container {
+  position: fixed;
+  inset: 0;
+  z-index: 11000;
+  pointer-events: none;
+}
+
+.exp-popup-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+              transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.exp-popup-overlay.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.exp-popup-overlay.hide {
+  opacity: 0;
+  transform: scale(0.8) translateY(-30px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out;
+}
+
+.exp-popup-card {
+  position: relative;
+  background: var(--card);
+  border-radius: 1.75rem;
+  padding: 2rem 1.75rem 1.75rem;
+  max-width: 340px;
+  width: 100%;
+  text-align: center;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.exp-popup-card.gain {
+  border: 2px solid #FF6B35;
+  box-shadow: 0 0 40px rgba(255, 107, 53, 0.2),
+              0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+.exp-popup-card.level-up {
+  border: 2px solid #FFD700;
+  box-shadow: 0 0 60px rgba(255, 215, 0, 0.3),
+              0 0 120px rgba(255, 165, 0, 0.15),
+              0 20px 60px rgba(0, 0, 0, 0.25);
+  animation: goldenPulse 1.5s ease-in-out infinite;
+}
+
+.exp-popup-card.loss {
+  border: 2px solid var(--danger);
+  box-shadow: 0 0 30px rgba(217, 128, 128, 0.15),
+              0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes goldenPulse {
+  0%, 100% { box-shadow: 0 0 60px rgba(255, 215, 0, 0.3), 0 0 120px rgba(255, 165, 0, 0.15), 0 20px 60px rgba(0, 0, 0, 0.25); }
+  50% { box-shadow: 0 0 80px rgba(255, 215, 0, 0.5), 0 0 160px rgba(255, 165, 0, 0.25), 0 20px 60px rgba(0, 0, 0, 0.25); }
+}
+
+/* ─── Fire particles ─── */
+.fire-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.fire-particle {
+  position: absolute;
+  bottom: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #FF6B35, #FF4500, transparent);
+  animation: fireRise 1.5s ease-out infinite;
+  opacity: 0;
+}
+
+.fire-particle.fire-golden {
+  background: radial-gradient(circle, #FFD700, #FFA500, transparent);
+}
+
+@keyframes fireRise {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-200px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* ─── Floating emojis ─── */
+.floating-emojis-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.floating-emoji {
+  position: absolute;
+  bottom: -20px;
+  font-size: 1.25rem;
+  animation: emojiFloat 2s ease-out forwards;
+  opacity: 0;
+}
+
+@keyframes emojiFloat {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(0.5);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-40px) rotate(-10deg) scale(1);
+  }
+  80% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-250px) rotate(20deg) scale(0.6);
+    opacity: 0;
+  }
+}
+
+/* ─── Popup icon ─── */
+.exp-popup-icon {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+}
+
+.exp-popup-icon.bounce-in {
+  animation: iconBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.exp-popup-icon.mega-bounce {
+  animation: megaBounce 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes iconBounce {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.3); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes megaBounce {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  40% { transform: scale(1.5) rotate(10deg); }
+  60% { transform: scale(0.85) rotate(-5deg); }
+  80% { transform: scale(1.15) rotate(2deg); }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* ─── Popup title ─── */
+.exp-popup-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  margin-bottom: 0.25rem;
+  position: relative;
+  z-index: 1;
+  letter-spacing: -0.02em;
+}
+
+.fire-text {
+  background: linear-gradient(135deg, #FF6B35, #FF4500, #FF8C00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 2px 8px rgba(255, 107, 53, 0.3));
+}
+
+.golden-text {
+  background: linear-gradient(135deg, #FFD700, #FFA500, #FF8C00, #FFD700);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: goldenShimmer 2s ease-in-out infinite;
+  filter: drop-shadow(0 2px 12px rgba(255, 215, 0, 0.4));
+}
+
+.loss-text {
+  color: var(--danger);
+  -webkit-text-fill-color: var(--danger);
+}
+
+@keyframes goldenShimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* ─── Level title badge ─── */
+.exp-popup-level-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #FFD700;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+  animation: fadeInUp 0.5s ease-out 0.3s both;
+}
+
+@keyframes fadeInUp {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.dark .exp-popup-level-title {
+  color: #FFD700;
+}
+
+/* ─── Popup quote ─── */
+.exp-popup-quote {
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.5;
+  margin: 0.5rem 0 0;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.5s ease-out 0.2s both;
+}
+
+/* ─── Level up progress bar ─── */
+.exp-popup-progress {
+  margin-top: 1rem;
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(255, 215, 0, 0.15);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.exp-popup-progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #FFD700, #FFA500);
+  animation: progressFillUp 1s ease-out 0.5s both;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+}
+
+@keyframes progressFillUp {
+  0% { width: 0%; }
+  100% { width: 100%; }
 }

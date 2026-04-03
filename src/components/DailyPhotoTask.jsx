@@ -73,7 +73,7 @@ function savePapState(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: getTodayKey(), ...data }));
 }
 
-export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak, streak }) {
+export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak, streak, onShowExpPopup }) {
   const [papState, setPapState] = useState(() => loadPapState());
   const [preview, setPreview]   = useState(papState?.preview || null);
   const [loading, setLoading]   = useState(false);
@@ -109,6 +109,7 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
     playChime();
     fireConfetti();
     onExp(15);
+    if (onShowExpPopup) onShowExpPopup(15, 'exp');
     onToast('Pap berhasil! Streak aman! +15 EXP 📸✨', 'success');
 
     // ── Catat ke Google Sheets ────────────────────────────────────────────────

@@ -7,6 +7,7 @@ import InsightCard    from './components/InsightCard';
 import DailyPhotoTask from './components/DailyPhotoTask';
 import FeedbackToast, { useToast } from './components/FeedbackToast';
 import WelcomeCard    from './components/WelcomeCard';
+import ExpPopup, { useExpPopup } from './components/ExpPopup';
 import { useGameState }  from './hooks/useGameState';
 import { useSheetsAPI }  from './hooks/useSheetsAPI';
 import { useLocalStorage } from './hooks/useLocalStorage';
@@ -46,6 +47,9 @@ export default function App() {
   // ── Toasts ────────────────────────────────────────────────────────────────
   const { toasts, addToast } = useToast();
 
+  // ── EXP Popups ─────────────────────────────────────────────────────────────
+  const { popups: expPopups, showExpPopup } = useExpPopup();
+
   // ── Streak broke notification ─────────────────────────────────────────
   useEffect(() => {
     if (streakBroke) {
@@ -74,20 +78,21 @@ export default function App() {
   const handleCompleteTask = useCallback(async (id) => {
     await apiUpdateTask(id, 'done');
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'done' } : t));
-    const prev = levelInfo.level;
+    const prevLevel = levelInfo.level;
     addExp(10);
+    showExpPopup(10, 'exp');
     // Level up check (async — level updates after re-render)
     setTimeout(() => {
       const next = JSON.parse(localStorage.getItem('dlt_exp') || '0');
       import('./utils/levels').then(({ getLevelInfo }) => {
-        const newLevel = getLevelInfo(next).level;
-        if (newLevel > prev) {
+        const info = getLevelInfo(next);
+        if (info.level > prevLevel) {
           fireConfetti();
-          addToast(`Level naik! Sekarang Lv.${newLevel} 🎉`, 'success');
+          showExpPopup(0, 'levelup', { newLevel: info.level, levelTitle: info.title });
         }
       });
     }, 100);
-  }, [apiUpdateTask, addExp, levelInfo, addToast]);
+  }, [apiUpdateTask, addExp, levelInfo, showExpPopup]);
 
   const handleDeleteTask = useCallback(async (id) => {
     await apiDeleteTask(id);
@@ -101,11 +106,13 @@ export default function App() {
     // High spending penalty (-2 EXP if over 200k)
     if (amount >= 200000) {
       addExp(-2);
+      showExpPopup(-2, 'exp');
       addToast('Dompet kamu nangis 😭 (-2 EXP)', 'warn');
     } else {
       addExp(5);
+      showExpPopup(5, 'exp');
     }
-  }, [apiAddExpense, addExp, addToast]);
+  }, [apiAddExpense, addExp, addToast, showExpPopup]);
 
   if (!ready) {
     return (
@@ -151,6 +158,7 @@ export default function App() {
               onAddPap={apiAddPap}
               onSaveStreak={saveStreakToSheets}
               streak={streak}
+              onShowExpPopup={showExpPopup}
             />
             <TaskSection
               tasks={tasks}
@@ -222,6 +230,9 @@ export default function App() {
 
       {/* ── Welcome Card ── */}
       {showWelcome && <WelcomeCard onDismiss={() => setShowWelcome(false)} />}
+
+      {/* ── EXP Popups ── */}
+      <ExpPopup popups={expPopups} />
 
       {/* ── Toasts ── */}
       <FeedbackToast toasts={toasts} />
