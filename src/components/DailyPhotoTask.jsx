@@ -265,15 +265,23 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
       <div className="section-title mb-3">
         <span>📸</span>
         <span>Kirim Pap Harian</span>
-        <span
-          className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full"
-          style={{
-            background: isDone ? 'var(--success)' : '#f97316',
-            color: '#fff',
-          }}
-        >
-          {isDone ? '✅ Done!' : '⚠️ Wajib Pap'}
-        </span>
+        <div className="ml-auto flex items-center gap-1.5">
+          <span
+            className="text-[10px] font-bold px-2 py-0.5 rounded-full opacity-60"
+            style={{ background: 'var(--accent)', color: 'var(--text)' }}
+          >
+            +15 EXP
+          </span>
+          <span
+            className="text-xs font-semibold px-2 py-0.5 rounded-full"
+            style={{
+              background: isDone ? 'var(--success)' : '#f97316',
+              color: '#fff',
+            }}
+          >
+            {isDone ? '✅ Done!' : '⚠️ Wajib Pap'}
+          </span>
+        </div>
       </div>
 
       {!isDone ? (
@@ -510,14 +518,6 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
           </div>
         </>
       )}
-
-      {/* +15 EXP badge top right */}
-      <div
-        className="absolute top-4 right-16 text-xs font-bold px-2 py-0.5 rounded-full opacity-70"
-        style={{ background: 'var(--accent)', color: 'var(--text)' }}
-      >
-        +15 EXP
-      </div>
     </div>
   );
 }
