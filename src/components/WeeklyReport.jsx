@@ -12,7 +12,7 @@ function getDateKey(dateStr) {
 
 function getLast7Days() {
   const days = [];
-  for (let i = 1; i <= 7; i++) {
+  for (let i = 0; i < 7; i++) { // Include today (0) down to 6 days ago
     const d = new Date();
     d.setDate(d.getDate() - i);
     days.push(d.toLocaleDateString('en-CA'));
@@ -135,12 +135,12 @@ export default function WeeklyReport({ tasks, expenses, streak, exp, onClose }) 
       {/* Modal */}
       <div
         className={`history-modal ${visible ? 'show' : ''}`}
-        style={{ maxWidth: 420, zIndex: 201 }}
+        style={{ maxWidth: 600, width: '95%', zIndex: 201 }}
       >
         {/* Header */}
-        <div className="history-modal-header">
-          <div className="flex items-center gap-2">
-            <span className="text-xl">📅</span>
+        <div className="history-modal-header" style={{ padding: '20px 24px' }}>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">📊</span>
             <div>
               <span className="font-bold text-sm" style={{ color: 'var(--text)' }}>Laporan Mingguan</span>
               <p className="text-[11px] mt-0.5" style={{ color: 'var(--muted)' }}>{rangeLabel}</p>
@@ -196,12 +196,47 @@ export default function WeeklyReport({ tasks, expenses, streak, exp, onClose }) 
             ))}
           </div>
 
+          {/* Trends logic */}
+          <div className="mb-4">
+            <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--muted)' }}>
+              Progres 7 Hari Terakhir
+            </p>
+            <div className="flex items-end justify-between gap-1 h-32 bg-accent/10 rounded-2xl p-4 border border-border">
+              {[...last7].reverse().map((day, idx) => {
+                const dayTasks = tasks.filter(t => getDateKey(t.date) === day);
+                const dayDone  = dayTasks.filter(t => t.status === 'done').length;
+                const height   = dayTasks.length > 0 ? (dayDone / Math.max(...last7.map(d => tasks.filter(t => getDateKey(t.date) === d).length || 1))) * 100 : 0;
+                const isToday  = day === new Date().toLocaleDateString('en-CA');
+                
+                return (
+                  <div key={day} className="flex-1 flex flex-col items-center group relative">
+                    <div 
+                      className="w-full rounded-t-lg transition-all duration-500" 
+                      style={{ 
+                        height: `${Math.max(height, 5)}%`, 
+                        background: isToday ? 'var(--success)' : 'var(--accent-2)',
+                        opacity: dayTasks.length > 0 ? 1 : 0.2
+                      }}
+                    />
+                    <span className="text-[9px] mt-2 font-bold" style={{ color: isToday ? 'var(--success)' : 'var(--muted)' }}>
+                      {new Date(day).toLocaleDateString('id-ID', { weekday: 'narrow' })}
+                    </span>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full mb-2 bg-text text-bg text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-10">
+                      {dayDone} Task Selesai
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Motivational footer */}
           <div
-            className="rounded-2xl px-4 py-3 text-center"
-            style={{ background: 'var(--accent)', border: '1px solid var(--accent-2)' }}
+            className="rounded-2xl px-4 py-4 text-center shadow-sm"
+            style={{ background: 'var(--accent)', border: '1.5px solid var(--accent-2)' }}
           >
-            <p className="text-xs font-semibold" style={{ color: 'var(--text)' }}>
+            <p className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
               {streak > 0
                 ? `🔥 Streak kamu ${streak} hari! Jangan putus ya~`
                 : '💪 Mulai streak baru minggu ini, pasti bisa!'}
