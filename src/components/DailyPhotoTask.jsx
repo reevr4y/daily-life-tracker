@@ -86,9 +86,10 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
   const [preview, setPreview]     = useState(null); // TIDAK load dari LS (base64 tidak disimpan)
   const [uploading, setUploading]   = useState(false);
   const [reUploading, setReUploading] = useState(false);
-  const [rePreview, setRePreview]   = useState(null); // preview untuk re-upload
+  const [rePreview, setRePreview]   = useState(null);
   const [loading, setLoading]     = useState(false);
   const [shaking, setShaking]     = useState(false);
+  const [lightbox, setLightbox]   = useState(false); // fullscreen photo viewer
   const fileRef     = useRef(null);
   const reUploadRef = useRef(null); // file input khusus re-upload
 
@@ -422,7 +423,12 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
 
           {/* Tampilkan foto dari Drive URL (cross-device!) */}
           {savedPhotoUrl ? (
-            <div className="rounded-2xl overflow-hidden mb-3" style={{ border: '2px solid var(--success)' }}>
+            <div
+              className="rounded-2xl overflow-hidden mb-3"
+              style={{ border: '2px solid var(--success)', cursor: 'zoom-in' }}
+              onClick={() => setLightbox(true)}
+              title="Klik untuk lihat foto penuh"
+            >
               <img
                 src={savedPhotoUrl}
                 alt="pap hari ini"
@@ -519,6 +525,74 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
             <span>{savedPhotoUrl ? 'Foto tersimpan di Drive · Bisa dibuka di device lain!' : 'Tercatat di Sheets · Upload foto supaya sync!'}</span>
           </div>
         </>
+      )}
+      {/* +15 EXP badge top right (now inside header) */}
+
+      {/* ── Lightbox / Fullscreen Photo ── */}
+      {lightbox && savedPhotoUrl && (
+        <div
+          onClick={() => setLightbox(false)}
+          style={{
+            position:        'fixed',
+            inset:           0,
+            zIndex:          99999,
+            background:      'rgba(0,0,0,0.92)',
+            display:         'flex',
+            alignItems:      'center',
+            justifyContent:  'center',
+            cursor:          'zoom-out',
+            padding:         '1.5rem',
+            animation:       'fadeIn 0.2s ease',
+          }}
+        >
+          <img
+            src={savedPhotoUrl}
+            alt="pap fullscreen"
+            style={{
+              maxWidth:     '100%',
+              maxHeight:    '90vh',
+              borderRadius: '1rem',
+              boxShadow:    '0 0 60px rgba(0,0,0,0.6)',
+              objectFit:    'contain',
+            }}
+            onClick={e => e.stopPropagation()}
+          />
+          <button
+            onClick={() => setLightbox(false)}
+            style={{
+              position:   'absolute',
+              top:        '1.25rem',
+              right:      '1.25rem',
+              background: 'rgba(255,255,255,0.15)',
+              border:     'none',
+              color:      '#fff',
+              width:      '40px',
+              height:     '40px',
+              borderRadius: '50%',
+              fontSize:   '1.1rem',
+              cursor:     'pointer',
+              display:    'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backdropFilter: 'blur(4px)',
+            }}
+          >
+            ✕
+          </button>
+          <p
+            style={{
+              position:  'absolute',
+              bottom:    '1.25rem',
+              left:      '50%',
+              transform: 'translateX(-50%)',
+              color:     'rgba(255,255,255,0.5)',
+              fontSize:  '0.75rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Klik di luar foto untuk tutup
+          </p>
+        </div>
       )}
     </div>
   );
