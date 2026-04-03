@@ -1,16 +1,28 @@
-// Level thresholds (EXP required to reach next level)
-export const LEVELS = [
-  { level: 1,  title: 'Newbie',      minExp: 0    },
-  { level: 2,  title: 'Curious',     minExp: 50   },
-  { level: 3,  title: 'Consistent',  minExp: 120  },
-  { level: 4,  title: 'Focused',     minExp: 220  },
-  { level: 5,  title: 'Productive',  minExp: 350  },
-  { level: 6,  title: 'Disciplined', minExp: 520  },
-  { level: 7,  title: 'Dedicated',   minExp: 730  },
-  { level: 8,  title: 'Efficient',   minExp: 980  },
-  { level: 9,  title: 'Master',      minExp: 1280 },
-  { level: 10, title: 'Legend',      minExp: 1650 },
+// Level titles based on range
+const TITLES = [
+  'Newbie', 'Curious', 'Consistent', 'Focused', 'Productive',
+  'Disciplined', 'Dedicated', 'Efficient', 'Master', 'Legend',
+  'Elite', 'Grandmaster', 'Unstoppable', 'Godlike', 'Transcendent'
 ];
+
+function getTitle(level) {
+  const index = Math.min(Math.floor((level - 1) / 5), TITLES.length - 1);
+  return TITLES[index];
+}
+
+// Generate 100 levels with quadratic progression
+// Level 1: 0, Level 10: ~1650, Level 50: ~45000
+export const LEVELS = Array.from({ length: 100 }, (_, i) => {
+  const level = i + 1;
+  // Threshold formula: mix of linear and quadratic for smooth early levels
+  // (i * 50) + (i^2 * 15)
+  const minExp = i === 0 ? 0 : Math.round((i * 60) + (Math.pow(i, 2.1) * 12));
+  return {
+    level,
+    title: getTitle(level),
+    minExp
+  };
+});
 
 export function getLevelInfo(exp) {
   let current = LEVELS[0];
@@ -20,6 +32,8 @@ export function getLevelInfo(exp) {
     if (exp >= LEVELS[i].minExp) {
       current = LEVELS[i];
       next = LEVELS[i + 1] || null;
+    } else {
+      break;
     }
   }
 

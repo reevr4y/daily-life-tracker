@@ -87,17 +87,16 @@ export default function App() {
         if (remoteState) {
           const localStored = localStorage.getItem('dlt_exp');
           const localExp    = localStored ? Number(JSON.parse(localStored)) : 0;
-          const remoteExp   = Number(remoteState.exp);
-          const remoteStreak = Number(remoteState.streak);
+          const remoteExp   = Number(remoteState.exp || 0);
+          const remoteStreak = Number(remoteState.streak || 0);
 
-          // Update kalau data di Sheets lebih baru (pakai EXP sebagai pembanding simpel)
-          if (remoteExp > localExp) {
-            import('./hooks/useGameState').then(() => {
-              localStorage.setItem('dlt_exp',        JSON.stringify(remoteExp));
-              localStorage.setItem('dlt_streak',     JSON.stringify(remoteStreak));
-              localStorage.setItem('dlt_lastActive', JSON.stringify(remoteState.last_active));
-              window.location.reload(); 
-            });
+          // Update ONLY if remote is significantly newer (e.g. at least 5 EXP diff)
+          // and we haven't just updated local state.
+          if (remoteExp > localExp + 5) {
+            localStorage.setItem('dlt_exp',        JSON.stringify(remoteExp));
+            localStorage.setItem('dlt_streak',     JSON.stringify(remoteStreak));
+            localStorage.setItem('dlt_lastActive', JSON.stringify(remoteState.last_active || ''));
+            window.location.reload(); 
           }
         }
       } catch (err) {
@@ -140,10 +139,10 @@ export default function App() {
     }
   }, [exp, streak, ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // ── EXP Correction (Auto-reset if corrupted) ─────────────────────────────
+  // ── EXP Correction (Auto-reset ONLY if truly corrupted/impossible) ────────
   useEffect(() => {
-    if (ready && Number(exp) > 10000) {
-      // Langsung update state & cloud tanpa reload biar nggak loop
+    // Increased threshold to 1,000,000
+    if (ready && Number(exp) > 1000000) {
       const resetValue = 150;
       setExp(resetValue);
       updateGameState({ 
