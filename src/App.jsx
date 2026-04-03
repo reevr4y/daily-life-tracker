@@ -45,6 +45,8 @@ export default function App() {
     addPapRecord:     apiAddPap,
     fetchTodayPap,
     saveStreakToSheets,
+    fetchGameState,
+    updateGameState,
   } = useSheetsAPI();
 
   // ── Toasts ────────────────────────────────────────────────────────────────
@@ -65,41 +67,69 @@ export default function App() {
   // ── Initial load ──────────────────────────────────────────────────────────
   useEffect(() => {
     (async () => {
+      // 1. Fetch dasar (Tasks, Expenses)
       const [t, e] = await Promise.all([fetchTasks(), fetchExpenses()]);
       setTasks(t || []);
       setExpenses(e || []);
 
-        // ── Cross-device PAP sync ──────────────────────────────────────────────
-        // Sync kalau LS belum ada PAP hari ini, ATAU ada tapi fotonya (Drive URL) kosong.
-        try {
-          const todayKey = new Date().toLocaleDateString('en-CA');
-          const localPapString = localStorage.getItem('dlt_daily_pap');
-          const localPap = localPapString ? JSON.parse(localPapString) : null;
-          
-          const hasTodayLocal = localPap?.date === todayKey && localPap?.done === true;
-          const hasPhotoUrl   = !!localPap?.photo_url && localPap?.photo_url.length > 5;
-
-          if (!hasTodayLocal || !hasPhotoUrl) {
-            const remotePap = await fetchTodayPap();
-            if (remotePap && remotePap.status === 'done' && remotePap.photo_url) {
-              // Restore ke LS dengan data lengkap dari Sheets
-              localStorage.setItem('dlt_daily_pap', JSON.stringify({
-                date:      todayKey,
-                done:      true,
-                photo_url: remotePap.photo_url,
-                timestamp: remotePap.timestamp || '',
-              }));
-              // Force re-render DailyPhotoTask
-              window.dispatchEvent(new Event('pap-synced'));
-            }
+      // 2. ── Sync Game State (EXP, Streak) ───────────────────────────────────
+      try {
+        const remoteState = await fetchGameState();
+        if (remoteState) {
+          const localExp = JSON.parse(localStorage.getItem('dlt_exp') || '0');
+          // Update kalau data di Sheets lebih baru (pakai EXP sebagai pembanding simpel)
+          // atau jika di lokal masih 0 sedangkan di Sheets sudah ada isinya.
+          if (remoteState.exp > localExp) {
+            import('./hooks/useGameState').then(() => {
+              // Kita paksa update LS biar hook useGameState ambil nilai terbaru nanti
+              localStorage.setItem('dlt_exp',        JSON.stringify(remoteState.exp));
+              localStorage.setItem('dlt_streak',     JSON.stringify(remoteState.streak));
+              localStorage.setItem('dlt_lastActive', JSON.stringify(remoteState.last_active));
+              // Force re-render dengan reload/state update? 
+              // Karena useGameState sudah jalan, cara terbaik adalah dispatch event atau reload kecil.
+              window.location.reload(); 
+            });
           }
-        } catch (e) {
-          console.warn('[PAP Sync] Failed to sync from Sheets:', e);
         }
+      } catch (err) {
+        console.warn('[Sync] Game state sync failed:', err);
+      }
+
+      // 3. ── Cross-device PAP sync ──────────────────────────────────────────
+      try {
+        const todayKey = new Date().toLocaleDateString('en-CA');
+        const localPapString = localStorage.getItem('dlt_daily_pap');
+        const localPap = localPapString ? JSON.parse(localPapString) : null;
+        
+        const hasTodayLocal = localPap?.date === todayKey && localPap?.done === true;
+        const hasPhotoUrl   = !!localPap?.photo_url && localPap?.photo_url.length > 5;
+
+        if (!hasTodayLocal || !hasPhotoUrl) {
+          const remotePap = await fetchTodayPap();
+          if (remotePap && remotePap.status === 'done' && remotePap.photo_url) {
+            localStorage.setItem('dlt_daily_pap', JSON.stringify({
+              date:      todayKey,
+              done:      true,
+              photo_url: remotePap.photo_url,
+              timestamp: remotePap.timestamp || '',
+            }));
+            window.dispatchEvent(new Event('pap-synced'));
+          }
+        }
+      } catch (e) {
+        console.warn('[PAP Sync] Failed to sync from Sheets:', e);
+      }
 
       setReady(true);
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ── Sync Game State ke Cloud saat EXP berubah ─────────────────────────────
+  useEffect(() => {
+    if (ready && exp > 0) {
+      updateGameState({ exp, streak, last_active: localStorage.getItem('dlt_lastActive')?.replace(/"/g, '') || '' });
+    }
+  }, [exp, streak, ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Task handlers ─────────────────────────────────────────────────────────
   const handleAddTask = useCallback(async (title) => {

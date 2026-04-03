@@ -42,7 +42,8 @@ function compressImage(dataUrl, maxWidth = 600, quality = 0.6) {
 
 // ─── Sheets via GET params (no CORS issues) ───────────────────────────────────
 async function sheetsRead(sheet) {
-  const url = `${SHEETS_API_URL}?action=read&sheet=${sheet}`;
+  // Tambahkan cache-buster (_t) supaya browser tidak ambil data basi
+  const url = `${SHEETS_API_URL}?action=read&sheet=${sheet}&_t=${Date.now()}`;
   const res  = await fetch(url);
   const text = await res.text();
   return JSON.parse(text);
@@ -239,11 +240,14 @@ export function useSheetsAPI() {
       }
     }
 
-    // Save record to Sheets (with or without photo_url)
+    // Save record to Sheets (TUNGGU sampai selesai - AWAIT)
     if (useSheets) {
-      sheetsWrite('insert', 'pap', record).catch(e =>
-        console.warn('[Sheets] addPapRecord failed:', e)
-      );
+      try {
+        await sheetsWrite('insert', 'pap', record);
+        console.log('[Sheets] PAP record saved to cloud');
+      } catch (e) {
+        console.warn('[Sheets] addPapRecord failed:', e);
+      }
     }
 
     // Kembalikan record dengan photo_url agar komponen bisa simpan Drive URL
@@ -282,9 +286,39 @@ export function useSheetsAPI() {
   // ── STREAK sync ───────────────────────────────────────────────────────────
   const saveStreakToSheets = useCallback(async ({ date, streak_count, pap_done }) => {
     if (!useSheets) return;
-    sheetsWrite('insert', 'streak', { date, streak_count, pap_done }).catch(e =>
+    await sheetsWrite('insert', 'streak', { date, streak_count, pap_done }).catch(e =>
       console.warn('[Sheets] saveStreak failed:', e)
     );
+  }, [useSheets]);
+
+  // ── GAME STATE (EXP, Streak) Sync ──────────────────────────────────────────
+  const fetchGameState = useCallback(async () => {
+    if (!useSheets) return null;
+    try {
+      const remote = await sheetsRead('gameState');
+      if (Array.isArray(remote) && remote.length > 0) {
+        // Cari yang paling baru di-update
+        const latest = [...remote].sort((a, b) => 
+          new Date(b.updated_at) - new Date(a.updated_at)
+        )[0];
+        return latest;
+      }
+    } catch (e) {
+      console.warn('[Sheets] fetchGameState failed:', e);
+    }
+    return null;
+  }, [useSheets]);
+
+  const updateGameState = useCallback(async ({ exp, streak, last_active }) => {
+    if (!useSheets) return;
+    try {
+      const data = { id: 'user_state', exp, streak, last_active, updated_at: new Date().toISOString() };
+      // Kita pakai 'update' kalau ID 'user_state' sudah ada, tapi untuk simpel kita append terus saja
+      // di sheet 'gameState' agar ada history-nya (fetchGameState ambil yang terbaru).
+      await sheetsWrite('insert', 'gameState', data);
+    } catch (e) {
+      console.warn('[Sheets] updateGameState failed:', e);
+    }
   }, [useSheets]);
 
   return {
@@ -298,5 +332,7 @@ export function useSheetsAPI() {
     addPapRecord,
     fetchTodayPap,
     saveStreakToSheets,
+    fetchGameState,
+    updateGameState,
   };
 }

@@ -3,13 +3,12 @@ import { useLocalStorage } from './useLocalStorage';
 import { getLevelInfo } from '../utils/levels';
 
 const PAP_KEY   = 'dlt_daily_pap';
-const todayStr  = () => new Date().toDateString();
-const todayIso  = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => new Date().toLocaleDateString('en-CA');
 
 function getYesterdayIso() {
   const d = new Date();
   d.setDate(d.getDate() - 1);
-  return d.toISOString().slice(0, 10);
+  return d.toLocaleDateString('en-CA');
 }
 
 function didPapYesterday() {
@@ -36,15 +35,13 @@ export function useGameState() {
 
   // ── On mount: check if streak should be reset because yesterday had no PAP ──
   useEffect(() => {
-    const today = todayStr();
+    const today = todayIso();
     if (lastActive === today) return; // already checked today
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toDateString();
+    const yesterday = getYesterdayIso();
 
     // If last active was yesterday but no PAP was done → break streak
-    if (lastActive === yesterdayStr && !didPapYesterday()) {
+    if (lastActive === yesterday && !didPapYesterday()) {
       setStreak(0);
       setStreakBroke(true);
     }
@@ -52,14 +49,12 @@ export function useGameState() {
 
   // Update streak on activity
   const recordActivity = useCallback(() => {
-    const today = todayStr();
+    const today = todayIso();
     if (lastActive === today) return; // already recorded today
 
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toDateString();
+    const yesterday = getYesterdayIso();
 
-    if (lastActive === yesterdayStr) {
+    if (lastActive === yesterday) {
       setStreak(s => s + 1); // continued streak
     } else if (lastActive !== today) {
       setStreak(1); // new or reset
@@ -81,5 +76,8 @@ export function useGameState() {
     recordActivity,
     streakBroke,
     didPapToday,
+    setExp,
+    setStreak,
+    setLastActive,
   };
 }
