@@ -18,7 +18,8 @@ function makeId() {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 }
 function todayIso() {
-  return new Date().toISOString().slice(0, 10);
+  // Gunakan local time format YYYY-MM-DD
+  return new Date().toLocaleDateString('en-CA'); 
 }
 
 // ─── Image compression helper ─────────────────────────────────────────────────
@@ -48,13 +49,17 @@ async function sheetsRead(sheet) {
 }
 
 async function sheetsWrite(action, sheet, data) {
-  const params = new URLSearchParams({
-    action,
-    sheet,
-    data: JSON.stringify(data),
+  // Gunakan POST (URLSearchParams) untuk konsistensi dan reliabilitas
+  const params = new URLSearchParams();
+  params.append('action', action);
+  params.append('sheet',  sheet);
+  params.append('data',   JSON.stringify(data));
+
+  const res  = await fetch(SHEETS_API_URL, {
+    method: 'POST',
+    body:   params,
+    redirect: 'follow',
   });
-  const url = `${SHEETS_API_URL}?${params.toString()}`;
-  const res  = await fetch(url);
   const text = await res.text();
   return JSON.parse(text);
 }
@@ -254,11 +259,17 @@ export function useSheetsAPI() {
       if (!Array.isArray(remote)) return null;
 
       const today = todayIso();
-      const todayPap = remote.find(p => p.date === today && p.status === 'done');
+      // Cari record terbaru (paling bawah di sheets) untuk hari ini yang PUNYA photo_url
+      const todayPap = [...remote].reverse().find(p => 
+        p.date === today && 
+        p.status === 'done' && 
+        p.photo_url && p.photo_url.length > 5
+      );
+
       if (todayPap) {
         const history = lsGet(LS_PAP);
-        const exists = history.find(p => p.date === today);
-        if (!exists) lsSet(LS_PAP, [todayPap, ...history]);
+        const exists = history.find(p => p.date === today && p.photo_url);
+        if (!exists) lsSet(LS_PAP, [todayPap, ...history.filter(h => h.date !== today)]);
         return todayPap;
       }
       return null;

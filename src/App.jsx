@@ -69,31 +69,33 @@ export default function App() {
       setTasks(t || []);
       setExpenses(e || []);
 
-      // ── Cross-device PAP sync ──────────────────────────────────────────────
-      // Kalau buka di device baru, localStorage belum punya PAP hari ini.
-      // Kita fetch dari Sheets dan restore ke LS supaya foto bisa tampil.
-      try {
-        const todayKey = new Date().toISOString().slice(0, 10);
-        const localPap = JSON.parse(localStorage.getItem('dlt_daily_pap') || 'null');
-        const hasTodayLocal = localPap?.date === todayKey && localPap?.done === true;
+        // ── Cross-device PAP sync ──────────────────────────────────────────────
+        // Sync kalau LS belum ada PAP hari ini, ATAU ada tapi fotonya (Drive URL) kosong.
+        try {
+          const todayKey = new Date().toLocaleDateString('en-CA');
+          const localPapString = localStorage.getItem('dlt_daily_pap');
+          const localPap = localPapString ? JSON.parse(localPapString) : null;
+          
+          const hasTodayLocal = localPap?.date === todayKey && localPap?.done === true;
+          const hasPhotoUrl   = !!localPap?.photo_url && localPap?.photo_url.length > 5;
 
-        if (!hasTodayLocal) {
-          const remotePap = await fetchTodayPap();
-          if (remotePap && remotePap.status === 'done') {
-            // Restore ke LS dengan photo_url dari Drive
-            localStorage.setItem('dlt_daily_pap', JSON.stringify({
-              date:      todayKey,
-              done:      true,
-              photo_url: remotePap.photo_url || '',
-              timestamp: remotePap.timestamp || '',
-            }));
-            // Force re-render DailyPhotoTask dengan dispatch custom event
-            window.dispatchEvent(new Event('pap-synced'));
+          if (!hasTodayLocal || !hasPhotoUrl) {
+            const remotePap = await fetchTodayPap();
+            if (remotePap && remotePap.status === 'done' && remotePap.photo_url) {
+              // Restore ke LS dengan data lengkap dari Sheets
+              localStorage.setItem('dlt_daily_pap', JSON.stringify({
+                date:      todayKey,
+                done:      true,
+                photo_url: remotePap.photo_url,
+                timestamp: remotePap.timestamp || '',
+              }));
+              // Force re-render DailyPhotoTask
+              window.dispatchEvent(new Event('pap-synced'));
+            }
           }
+        } catch (e) {
+          console.warn('[PAP Sync] Failed to sync from Sheets:', e);
         }
-      } catch (e) {
-        console.warn('[PAP Sync] Failed to sync from Sheets:', e);
-      }
 
       setReady(true);
     })();
