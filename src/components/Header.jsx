@@ -9,7 +9,7 @@ export default function Header({ levelInfo, exp, streak, darkMode, onToggleDark,
   }, []);
 
   return (
-    <header className="card p-5 mb-4">
+    <header className="w-full">
       {/* Top row: greeting + dark toggle */}
       <div className="flex items-start justify-between gap-3 mb-4">
         <div className={`flex-1 min-w-0 transition-all duration-700 ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>

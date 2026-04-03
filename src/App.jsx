@@ -319,9 +319,9 @@ export default function App() {
       {/* ── Container ── */}
       <div className="app-container">
 
-        {/* ── Header Row: 3/4 header + 1/4 date card ── */}
+        {/* ── Header Row: Greeting/EXP (L) + Date (R) ── */}
         <div className="header-row">
-          <div className="header-main">
+          <div className="header-main card p-5 flex flex-col justify-center">
             <Header
               levelInfo={levelInfo}
               exp={exp}
@@ -371,10 +371,10 @@ export default function App() {
           </div>
         </div>
 
-        {/* ── Main 3-Column Grid ── */}
+        {/* ── Main 2-Column Grid (From Wireframe) ── */}
         <div className="main-grid">
 
-          {/* ── Column 1: Photo + Task + Insight ── */}
+          {/* ── Column 1 (Left): PAP + Daily Tasks ── */}
           <div className="col-left">
             <DailyPhotoTask
               onExp={addExp}
@@ -392,21 +392,10 @@ export default function App() {
               onDelete={handleDeleteTask}
               onToast={addToast}
             />
-            <TomorrowTaskSection
-              tasks={tasks}
-              onAdd={handleAddTask}
-              onDelete={handleDeleteTask}
-              onToast={addToast}
-            />
-            <InsightCard
-              tasks={tasks}
-              expenses={expenses}
-              filter={filter}
-            />
           </div>
 
-          {/* ── Column 2: Expense + Chart + Stats ── */}
-          <div className="col-center">
+          {/* ── Column 2 (Right): Expenses + Chart + Tomorrow's Plan ── */}
+          <div className="col-right">
             <ExpenseSection
               expenses={expenses}
               filter={filter}
@@ -415,12 +404,18 @@ export default function App() {
               onToast={addToast}
             />
             <ExpenseChart expenses={expenses} />
+            <TomorrowTaskSection
+              tasks={tasks}
+              onAdd={handleAddTask}
+              onDelete={handleDeleteTask}
+              onToast={addToast}
+            />
 
-            {/* Quick stats card */}
+            {/* Optional Small Stats Card at the bottom of sidebar */}
             <div className="card p-5">
               <div className="section-title mb-3">
                 <span>⚡</span>
-                <span>Status Hari Ini</span>
+                <span>Status</span>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 <StatTile
@@ -446,6 +441,15 @@ export default function App() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* ── Bottom Section: Insights (Full Width) ── */}
+          <div className="insight-container">
+            <InsightCard
+              tasks={tasks}
+              expenses={expenses}
+              filter={filter}
+            />
           </div>
 
         </div>
