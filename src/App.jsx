@@ -281,7 +281,7 @@ export default function App() {
             />
           </div>
 
-          {/* ── Column 2: Expense + Chart ── */}
+          {/* ── Column 2: Expense + Chart + Stats ── */}
           <div className="col-center">
             <ExpenseSection
               expenses={expenses}
@@ -290,20 +290,17 @@ export default function App() {
               onToast={addToast}
             />
             <ExpenseChart expenses={expenses} />
-          </div>
 
-          {/* ── Column 3: Stats sidebar ── */}
-          <div className="col-right">
             {/* Quick stats card */}
             <div className="card p-5">
-              <div className="section-title mb-4">
+              <div className="section-title mb-3">
                 <span>⚡</span>
                 <span>Status Hari Ini</span>
               </div>
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <StatTile
                   icon="📋"
-                  label="Tasks Hari Ini"
+                  label="Tasks"
                   value={tasks.filter(t => {
                     const today = new Date().toDateString();
                     return new Date(t.date).toDateString() === today;
@@ -319,52 +316,13 @@ export default function App() {
                 />
                 <StatTile
                   icon="🔥"
-                  label="Streak Hari"
+                  label="Streak"
                   value={`${streak}d`}
                 />
               </div>
             </div>
-
-            {/* Motivational quote card */}
-            <div
-              className="card p-5"
-              style={{
-                background: 'linear-gradient(135deg, rgba(214,194,161,0.25), rgba(123,174,127,0.15))',
-                border: '1px solid var(--accent-2)',
-              }}
-            >
-              <div className="text-3xl mb-2 text-center">🌿</div>
-              <p className="text-sm font-medium text-center" style={{ color: 'var(--text)', lineHeight: 1.7 }}>
-                Satu langkah kecil hari ini adalah satu langkah besar untuk masa depan.
-              </p>
-              <p className="text-xs text-center mt-2" style={{ color: 'var(--muted)', fontStyle: 'italic' }}>
-                Keep going, matchaa~ 💕
-              </p>
-            </div>
-
-            {/* Mini calendar */}
-            <div className="card p-5">
-              <div className="section-title mb-3">
-                <span>📆</span>
-                <span>Hari ini</span>
-              </div>
-              <p
-                className="text-2xl font-bold"
-                style={{ color: 'var(--text)', letterSpacing: '-0.02em' }}
-              >
-                {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long' })}
-              </p>
-              <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
-                {new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric' })}
-              </p>
-              <div
-                className="mt-3 px-3 py-2 rounded-xl text-xs font-semibold text-center"
-                style={{ background: 'var(--accent)', color: 'var(--text)' }}
-              >
-                ✨ Semangat hari ini!
-              </div>
-            </div>
           </div>
+
         </div>
 
         {/* ── Footer ── */}
