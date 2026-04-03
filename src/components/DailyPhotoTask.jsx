@@ -325,12 +325,14 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
 
           {/* ── Photo preview ── */}
           {preview && (
-            <div className="relative mb-3 rounded-2xl overflow-hidden" style={{ border: '2px solid var(--accent)' }}>
+            <div
+              className="relative mb-3 rounded-2xl overflow-hidden"
+              style={{ border: '2px solid var(--accent)', aspectRatio: '1 / 1' }}
+            >
               <img
                 src={preview}
                 alt="preview"
-                className="w-full object-cover"
-                style={{ maxHeight: '220px' }}
+                className="w-full h-full object-cover"
               />
               <button
                 onClick={handleCancel}
@@ -425,15 +427,25 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
           {savedPhotoUrl ? (
             <div
               className="rounded-2xl overflow-hidden mb-3"
-              style={{ border: '2px solid var(--success)', cursor: 'zoom-in' }}
+              style={{
+                border:      '2px solid var(--success)',
+                cursor:      'zoom-in',
+                aspectRatio: '1 / 1',
+                width:       '100%',
+              }}
               onClick={() => setLightbox(true)}
               title="Klik untuk lihat foto penuh"
             >
               <img
                 src={savedPhotoUrl}
                 alt="pap hari ini"
-                className="w-full object-cover"
-                style={{ maxHeight: '220px' }}
+                style={{
+                  width:      '100%',
+                  height:     '100%',
+                  objectFit:  'cover',
+                  objectPosition: 'center',
+                  display:    'block',
+                }}
                 onError={(e) => { e.target.style.display = 'none'; }}
               />
             </div>
@@ -445,12 +457,11 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
             >
               {rePreview ? (
                 // Preview foto yang dipilih untuk re-upload
-                <div className="relative">
+                <div className="relative" style={{ aspectRatio: '1 / 1' }}>
                   <img
                     src={rePreview}
                     alt="preview re-upload"
-                    className="w-full object-cover"
-                    style={{ maxHeight: '180px' }}
+                    className="w-full h-full object-cover"
                   />
                   <button
                     onClick={cancelReUpload}
