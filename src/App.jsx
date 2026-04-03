@@ -8,6 +8,7 @@ import DailyPhotoTask from './components/DailyPhotoTask';
 import HistoryModal   from './components/HistoryModal';
 import FeedbackToast, { useToast } from './components/FeedbackToast';
 import WelcomeCard    from './components/WelcomeCard';
+import TomorrowTaskSection from './components/TomorrowTaskSection';
 import ExpPopup, { useExpPopup } from './components/ExpPopup';
 import { useGameState }  from './hooks/useGameState';
 import { useSheetsAPI }  from './hooks/useSheetsAPI';
@@ -15,22 +16,26 @@ import { useLocalStorage } from './hooks/useLocalStorage';
 import { fireConfetti }  from './utils/confetti';
 import ExpenseChart   from './components/ExpenseChart';
 import WeeklyReport, { useWeeklyReportTrigger } from './components/WeeklyReport';
+import FloatingDecorations from './components/FloatingDecorations';
 
 export default function App() {
   // ── Dark mode ────────────────────────────────────────────────────────────
   const [darkMode, setDarkMode] = useLocalStorage('dlt_dark', false);
+  const [theme, setTheme]       = useLocalStorage('dlt_theme', 'matcha');
   const [showWelcome, setShowWelcome] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const { show: showWeeklyReport, setShow: setShowWeeklyReport, dismiss: dismissWeekly } = useWeeklyReportTrigger();
+  
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
-  }, [darkMode]);
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [darkMode, theme]);
 
   // ── Filter ────────────────────────────────────────────────────────────────
   const [filter, setFilter] = useState('daily');
 
   // ── Game state ────────────────────────────────────────────────────────────
-  const { exp, streak, levelInfo, addExp, streakBroke } = useGameState();
+  const { exp, streak, levelInfo, addExp, streakBroke, setExp } = useGameState();
 
   // ── Data state ────────────────────────────────────────────────────────────
   const [tasks,    setTasks]    = useState([]);
@@ -45,6 +50,7 @@ export default function App() {
     deleteTask:       apiDeleteTask,
     fetchExpenses,
     addExpense:       apiAddExpense,
+    deleteExpense:    apiDeleteExpense,
     addPapRecord:     apiAddPap,
     fetchTodayPap,
     saveStreakToSheets,
@@ -79,17 +85,17 @@ export default function App() {
       try {
         const remoteState = await fetchGameState();
         if (remoteState) {
-          const localExp = JSON.parse(localStorage.getItem('dlt_exp') || '0');
+          const localStored = localStorage.getItem('dlt_exp');
+          const localExp    = localStored ? Number(JSON.parse(localStored)) : 0;
+          const remoteExp   = Number(remoteState.exp);
+          const remoteStreak = Number(remoteState.streak);
+
           // Update kalau data di Sheets lebih baru (pakai EXP sebagai pembanding simpel)
-          // atau jika di lokal masih 0 sedangkan di Sheets sudah ada isinya.
-          if (remoteState.exp > localExp) {
+          if (remoteExp > localExp) {
             import('./hooks/useGameState').then(() => {
-              // Kita paksa update LS biar hook useGameState ambil nilai terbaru nanti
-              localStorage.setItem('dlt_exp',        JSON.stringify(remoteState.exp));
-              localStorage.setItem('dlt_streak',     JSON.stringify(remoteState.streak));
+              localStorage.setItem('dlt_exp',        JSON.stringify(remoteExp));
+              localStorage.setItem('dlt_streak',     JSON.stringify(remoteStreak));
               localStorage.setItem('dlt_lastActive', JSON.stringify(remoteState.last_active));
-              // Force re-render dengan reload/state update? 
-              // Karena useGameState sudah jalan, cara terbaik adalah dispatch event atau reload kecil.
               window.location.reload(); 
             });
           }
@@ -134,9 +140,62 @@ export default function App() {
     }
   }, [exp, streak, ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── EXP Correction (Auto-reset if corrupted) ─────────────────────────────
+  useEffect(() => {
+    if (ready && Number(exp) > 10000) {
+      // Langsung update state & cloud tanpa reload biar nggak loop
+      const resetValue = 150;
+      setExp(resetValue);
+      updateGameState({ 
+        exp: resetValue, 
+        streak, 
+        last_active: localStorage.getItem('dlt_lastActive')?.replace(/"/g, '') || '' 
+      });
+      addToast('Waduh, EXP kamu tadi sempat error (kebanyakan). Sudah aku rapihin lagi ke 150 ya! ✨', 'success');
+    }
+  }, [ready, exp, setExp, streak, updateGameState, addToast]);
+
+  // ── Daily Task Check (Penalty for missed tasks) ──────────────────────────
+  useEffect(() => {
+    if (!ready) return;
+
+    const today = new Date().toLocaleDateString('en-CA');
+    const lastCheck = localStorage.getItem('dlt_lastTaskCheck');
+
+    if (lastCheck !== today) {
+      const pendingOldCount = tasks.filter(t => t.status === 'pending' && t.date < today).length;
+      
+      if (pendingOldCount > 0) {
+        const penalty = pendingOldCount * 5;
+        addExp(-penalty);
+        
+        // Mark as missed in LocalStorage & Cloud
+        const updatedTasks = tasks.map(t => 
+          (t.status === 'pending' && t.date < today) ? { ...t, status: 'missed' } : t
+        );
+        
+        // Update local tasks state
+        setTasks(updatedTasks);
+        
+        // Sync missed tasks to cloud
+        updatedTasks.forEach(t => {
+          if (t.status === 'missed') {
+            apiUpdateTask(t.id, 'missed').catch(() => {});
+          }
+        });
+
+        setTimeout(() => {
+          addToast(`Kamu melewatkan ${pendingOldCount} task kemarin 😢 EXP -${penalty}`, 'warn');
+        }, 2000);
+      }
+      
+      localStorage.setItem('dlt_lastTaskCheck', today);
+    }
+  }, [ready, tasks, addExp, addToast, apiUpdateTask]);
+
   // ── Task handlers ─────────────────────────────────────────────────────────
-  const handleAddTask = useCallback(async (title) => {
-    const task = await apiAddTask(title);
+  const handleAddTask = useCallback(async (title, date) => {
+    const task = await apiAddTask(title, date);
     setTasks(prev => [task, ...prev]);
   }, [apiAddTask]);
 
@@ -179,28 +238,41 @@ export default function App() {
     }
   }, [apiAddExpense, addExp, addToast, showExpPopup]);
 
+  const handleDeleteExpense = useCallback(async (id) => {
+    await apiDeleteExpense(id);
+    setExpenses(prev => prev.filter(e => e.id !== id));
+  }, [apiDeleteExpense]);
+
   if (!ready) {
     return (
       <div
-        className="min-h-screen"
+        className="min-h-screen flex items-center justify-center p-6"
         style={{ background: 'var(--bg)' }}
       >
-        <div className="max-w-2xl mx-auto px-4 py-6 lg:max-w-4xl space-y-4">
-          {/* Skeleton header */}
-          <div className="skeleton-card">
-            <div className="skeleton-line" style={{ width: '55%' }} />
-            <div className="skeleton-line" style={{ width: '35%', height: '10px', animationDelay: '0.1s' }} />
-            <div className="skeleton" style={{ height: '10px', width: '100%', borderRadius: '99px', animationDelay: '0.2s' }} />
+        <div className="flex flex-col items-center max-w-sm w-full text-center space-y-6">
+          {/* Loading Image */}
+          <div className="relative">
+            <div className="absolute inset-0 bg-accent/20 blur-3xl rounded-full scale-110 animate-pulse" />
+            <img 
+              src="cis.svg" 
+              alt="loading" 
+              className="relative w-40 h-40 object-contain animate-bounce-slow drop-shadow-2xl"
+            />
           </div>
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            {[0,1,2,3].map(i => (
-              <div key={i} className="skeleton-card" style={{ animationDelay: `${i * 0.08}s` }}>
-                <div className="skeleton-line" style={{ width: '40%', animationDelay: `${i * 0.1}s` }} />
-                <div className="skeleton-line" style={{ animationDelay: `${i * 0.12}s` }} />
-                <div className="skeleton-line" style={{ width: '75%', animationDelay: `${i * 0.14}s` }} />
-                <div className="skeleton-line" style={{ width: '60%', animationDelay: `${i * 0.16}s` }} />
-              </div>
-            ))}
+          
+          <div className="space-y-2">
+            <h2 className="text-xl font-bold" style={{ color: 'var(--text)' }}>
+              Sabar ya matchaa... 🍵
+            </h2>
+            <p className="text-sm" style={{ color: 'var(--muted)' }}>
+              Lagi nyiapin data buat kamu~
+            </p>
+          </div>
+
+          {/* Skeleton placeholders simplified below */}
+          <div className="w-full space-y-3 opacity-50 px-4">
+            <div className="skeleton-line mx-auto" style={{ width: '80%' }} />
+            <div className="skeleton-line mx-auto" style={{ width: '60%' }} />
           </div>
         </div>
       </div>
@@ -212,7 +284,8 @@ export default function App() {
       className="min-h-screen"
       style={{ background: 'var(--bg)', transition: 'background 0.3s ease', position: 'relative', overflow: 'hidden' }}
     >
-      {/* ── Decorative blob shapes ── */}
+      {/* ── Decorative elements ── */}
+      <FloatingDecorations theme={theme} />
       <div className="deco-blob deco-blob-1" aria-hidden="true" />
       <div className="deco-blob deco-blob-2" aria-hidden="true" />
       <div className="deco-blob deco-blob-3" aria-hidden="true" />
@@ -229,6 +302,8 @@ export default function App() {
               streak={streak}
               darkMode={darkMode}
               onToggleDark={() => setDarkMode(d => !d)}
+              theme={theme}
+              onThemeChange={setTheme}
             />
           </div>
           <div className="header-date-card card p-5">
@@ -291,6 +366,12 @@ export default function App() {
               onDelete={handleDeleteTask}
               onToast={addToast}
             />
+            <TomorrowTaskSection
+              tasks={tasks}
+              onAdd={handleAddTask}
+              onDelete={handleDeleteTask}
+              onToast={addToast}
+            />
             <InsightCard
               tasks={tasks}
               expenses={expenses}
@@ -304,6 +385,7 @@ export default function App() {
               expenses={expenses}
               filter={filter}
               onAdd={handleAddExpense}
+              onDelete={handleDeleteExpense}
               onToast={addToast}
             />
             <ExpenseChart expenses={expenses} />

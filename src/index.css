@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,6 +6,7 @@
 
 /* ─── CSS Variables ─── */
 :root {
+  /* Matcha (Default) */
   --bg:         #F8F5F0;
   --card:       #FFFFFF;
   --accent:     #E6D3B3;
@@ -13,14 +14,52 @@
   --text:       #3E3E3E;
   --muted:      #8A8A8A;
   --border:     #EDE8E0;
-  --shadow:     rgba(0, 0, 0, 0.06);
-  --shadow-md:  rgba(0, 0, 0, 0.10);
+  --shadow:     rgba(0, 0, 0, 0.05);
+  --shadow-md:  rgba(0, 0, 0, 0.08);
   --success:    #7BAE7F;
   --danger:     #D98080;
   --exp-fill:   #C4A882;
-  --glass:      rgba(255, 255, 255, 0.65);
-  --glow-green: rgba(123, 174, 127, 0.25);
-  --glow-gold:  rgba(196, 168, 130, 0.3);
+  --glass:      rgba(255, 255, 255, 0.7);
+  --glow-green: rgba(123, 174, 127, 0.2);
+  --glow-gold:  rgba(196, 168, 130, 0.25);
+}
+
+/* 🍓 Strawberry Theme */
+[data-theme='strawberry'] {
+  --bg:         #FFF5F7;
+  --accent:     #FFD4DB;
+  --accent-2:   #FFB9C7;
+  --success:    #FF8AA1;
+  --exp-fill:   #FF748D;
+  --text:       #5A2D3A;
+  --muted:      #9A707D;
+  --border:     #FFE2E8;
+  --glow-green: rgba(255, 138, 161, 0.2);
+  --glow-gold:  rgba(255, 116, 141, 0.25);
+}
+
+/* 🍑 Peach Theme */
+[data-theme='peach'] {
+  --bg:         #FFF9F2;
+  --accent:     #FFE5CC;
+  --accent-2:   #FFD6AD;
+  --success:    #FFB366;
+  --exp-fill:   #FFA347;
+  --text:       #4A3D30;
+  --muted:      #8A7B6A;
+  --border:     #FFEEE0;
+}
+
+/* 🍇 Lavender Theme */
+[data-theme='lavender'] {
+  --bg:         #F9F5FF;
+  --accent:     #E8DDFF;
+  --accent-2:   #D4C2FF;
+  --success:    #A084E8;
+  --exp-fill:   #8E6CE0;
+  --text:       #3A2D5A;
+  --muted:      #7D709A;
+  --border:     #F0E8FF;
 }
 
 .dark {
@@ -48,14 +87,15 @@ html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
-  font-family: 'Inter', system-ui, sans-serif;
+  font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   background-color: var(--bg);
   /* Subtle gradient background */
-  background-image: radial-gradient(ellipse at 20% 10%, rgba(214,194,161,0.18) 0%, transparent 55%),
-                    radial-gradient(ellipse at 80% 90%, rgba(123,174,127,0.10) 0%, transparent 50%);
+  background-image: radial-gradient(ellipse at 20% 10%, var(--accent), transparent 55%),
+                    radial-gradient(ellipse at 80% 90%, var(--success), transparent 50%);
   background-attachment: fixed;
+  background-size: 100% 100%;
   color: var(--text);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.5s ease, color 0.5s ease;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -1593,3 +1633,90 @@ body {
     gap: 1rem;
   }
 }
+
+/* ─── Floating Decorations ─── */
+.floating-decoration {
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.1;
+  filter: blur(0.5px);
+  animation: floatDecoration 20s linear infinite;
+  user-select: none;
+}
+
+@keyframes floatDecoration {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.1; }
+  90% { opacity: 0.1; }
+  100% { transform: translate(100px, -800px) rotate(360deg); opacity: 0; }
+}
+
+.decoration-1 { left: 5%; bottom: -10%; animation-duration: 25s; font-size: 1.5rem; }
+.decoration-2 { left: 15%; bottom: -10%; animation-duration: 35s; animation-delay: 5s; font-size: 1.2rem; }
+.decoration-3 { left: 40%; bottom: -10%; animation-duration: 30s; animation-delay: 2s; font-size: 2rem; }
+.decoration-4 { left: 70%; bottom: -10%; animation-duration: 40s; animation-delay: 8s; font-size: 1.3rem; }
+.decoration-5 { left: 85%; bottom: -10%; animation-duration: 28s; animation-delay: 12s; font-size: 1.8rem; }
+.decoration-6 { left: 25%; bottom: -10%; animation-duration: 45s; animation-delay: 15s; font-size: 1.1rem; }
+
+/* Override some styles for better aesthetic */
+.btn-primary {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.card {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid var(--border);
+}
+
+.input-field {
+  transition: all 0.3s ease;
+}
+
+/* ─── Task Item States ─── */
+.task-item.missed {
+  opacity: 0.65;
+  filter: grayscale(0.4);
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+.task-item.missed .task-text {
+  text-decoration: line-through;
+  color: #94a3b8 !important;
+}
+
+.custom-checkbox.locked {
+  cursor: not-allowed;
+  background: transparent !important;
+  border-color: #cbd5e1 !important;
+}
+
+.dark .task-item.missed {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(248, 113, 113, 0.2) !important;
+}
+
+/* ─── Custom Animations ─── */
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
+  50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
+}
+.animate-bounce-slow {
+  animation: bounce-slow 3s infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+.task-item.missed:hover {
+  animation: shake 0.4s ease-in-out;
+}
+
+[data-theme] {
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+

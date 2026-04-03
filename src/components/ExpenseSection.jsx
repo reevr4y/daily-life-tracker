@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { filterByPeriod, getTotalSpending, formatCurrency } from '../utils/insights';
 import { playPop } from '../utils/sounds';
 
-export default function ExpenseSection({ expenses, filter, onAdd, onToast }) {
+export default function ExpenseSection({ expenses, filter, onAdd, onDelete, onToast }) {
   const [name, setName]     = useState('');
   const [amount, setAmount] = useState('');
+  const [removingId, setRemovingId] = useState(null);
 
   const filtered = filterByPeriod(expenses, filter);
   const total    = getTotalSpending(filtered);
@@ -19,6 +20,15 @@ export default function ExpenseSection({ expenses, filter, onAdd, onToast }) {
     playPop();
     onToast('Jajan lagi nih 👀', 'warn');
     await onAdd(n, a);
+  };
+
+  const handleDelete = async (id) => {
+    setRemovingId(id);
+    playPop();
+    setTimeout(async () => {
+      await onDelete(id);
+      setRemovingId(null);
+    }, 300);
   };
 
   return (
@@ -72,18 +82,30 @@ export default function ExpenseSection({ expenses, filter, onAdd, onToast }) {
         {[...filtered].reverse().map(e => (
           <div
             key={e.id}
-            className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm"
+            className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-300 ${removingId === e.id ? 'opacity-0 scale-95 translate-x-4' : ''}`}
             style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
           >
-            <div className="flex items-center gap-2">
-              <span className="text-base">🛍️</span>
-              <span className="font-medium capitalize" style={{ color: 'var(--text)' }}>
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-base flex-shrink-0">🛍️</span>
+              <span className="font-medium capitalize truncate" style={{ color: 'var(--text)' }}>
                 {e.name}
               </span>
             </div>
-            <span className="font-semibold" style={{ color: 'var(--exp-fill, #C4A882)' }}>
-              {formatCurrency(e.amount)}
-            </span>
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <span className="font-semibold whitespace-nowrap" style={{ color: 'var(--exp-fill, #C4A882)' }}>
+                {formatCurrency(e.amount)}
+              </span>
+              <button
+                onClick={() => handleDelete(e.id)}
+                className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                style={{ color: 'var(--muted)' }}
+                aria-label="Delete expense"
+              >
+                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+                  <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+            </div>
           </div>
         ))}
       </div>

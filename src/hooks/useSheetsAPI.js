@@ -138,8 +138,9 @@ export function useSheetsAPI() {
     return cached;
   }, [useSheets]);
 
-  const addTask = useCallback(async (title) => {
-    const task = { id: makeId(), title, status: 'pending', date: todayIso() };
+  const addTask = useCallback(async (title, date) => {
+    const taskDate = date || todayIso();
+    const task = { id: makeId(), title, status: 'pending', date: taskDate };
     const tasks = lsGet(LS_TASKS);
     lsSet(LS_TASKS, [task, ...tasks]);
 
@@ -205,6 +206,17 @@ export function useSheetsAPI() {
     }
 
     return expense;
+  }, [useSheets]);
+
+  const deleteExpense = useCallback(async (id) => {
+    const expenses = lsGet(LS_EXPENSES).filter(e => e.id !== id);
+    lsSet(LS_EXPENSES, expenses);
+
+    if (useSheets) {
+      sheetsWrite('delete', 'expenses', { id }).catch(e =>
+        console.warn('[Sheets] deleteExpense failed:', e)
+      );
+    }
   }, [useSheets]);
 
   // ── PAP (Daily Photo) ──────────────────────────────────────────────────────
@@ -330,6 +342,7 @@ export function useSheetsAPI() {
     deleteTask,
     fetchExpenses,
     addExpense,
+    deleteExpense,
     addPapRecord,
     fetchTodayPap,
     saveStreakToSheets,

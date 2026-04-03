@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import ThemePicker from './ThemePicker';
 
-export default function Header({ levelInfo, exp, streak, darkMode, onToggleDark }) {
+export default function Header({ levelInfo, exp, streak, darkMode, onToggleDark, theme, onThemeChange }) {
   const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
@@ -11,34 +12,39 @@ export default function Header({ levelInfo, exp, streak, darkMode, onToggleDark 
     <header className="card p-5 mb-4">
       {/* Top row: greeting + dark toggle */}
       <div className="flex items-start justify-between gap-3 mb-4">
-        <div className={`transition-all duration-700 ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
-          <h1 className="text-2xl font-bold leading-tight" style={{ color: 'var(--text)' }}>
+        <div className={`flex-1 min-w-0 transition-all duration-700 ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
+          <h1 className="text-2xl font-bold leading-tight truncate" style={{ color: 'var(--text)' }}>
             Matchaaawwww 👋
           </h1>
-          <p className="text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
+          <p className="text-sm mt-0.5 truncate" style={{ color: 'var(--muted)' }}>
             Selamat datang di ruang produktifmu~
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0 mt-1">
-          {/* Streak badge */}
-          {streak > 0 && (
-            <div className="streak-badge">
-              <span className="streak-fire">🔥</span> {streak}d
-            </div>
-          )}
+        <div className="flex items-center gap-2.5 flex-shrink-0 mt-1">
+          {/* Theme Picker */}
+          <ThemePicker currentTheme={theme} onChange={onThemeChange} />
+          
+          <div className="flex items-center gap-2">
+            {/* Streak badge */}
+            {streak > 0 && (
+              <div className="streak-badge flex-shrink-0">
+                <span className="streak-fire">🔥</span> {streak}d
+              </div>
+            )}
 
-          {/* Dark mode toggle */}
-          <button
-            onClick={onToggleDark}
-            className="dark-toggle"
-            title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
-            aria-label="Toggle dark mode"
-          >
-            <div className="dark-toggle-knob flex items-center justify-center text-xs">
-              {darkMode ? '🌙' : '☀️'}
-            </div>
-          </button>
+            {/* Dark mode toggle */}
+            <button
+              onClick={onToggleDark}
+              className="dark-toggle flex-shrink-0"
+              title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label="Toggle dark mode"
+            >
+              <div className="dark-toggle-knob flex items-center justify-center text-xs">
+                {darkMode ? '🌙' : '☀️'}
+              </div>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -430,12 +430,11 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
           {/* Tampilkan foto dari Drive URL (cross-device!) */}
           {savedPhotoUrl ? (
             <div
-              className="rounded-2xl overflow-hidden mb-3"
+              className="rounded-2xl overflow-hidden mb-3 aspect-square w-full shrink-0"
               style={{
                 border:      '2px solid var(--success)',
                 cursor:      'zoom-in',
-                aspectRatio: '1 / 1',
-                width:       '100%',
+                background:  'rgba(0,0,0,0.03)',
               }}
               onClick={() => setLightbox(true)}
               title="Klik untuk lihat foto penuh"

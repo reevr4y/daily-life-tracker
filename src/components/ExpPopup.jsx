@@ -149,9 +149,17 @@ function ExpPopupCard({ popup }) {
           ))}
         </div>
 
-        {/* Main emoji */}
+        {/* Main icon/image */}
         <div className={`exp-popup-icon ${isLevelUp ? 'mega-bounce' : 'bounce-in'}`}>
-          {popup.emoji}
+          {popup.amount > 0 && !isLevelUp ? (
+            <img 
+              src="semangat.svg" 
+              alt="semangat" 
+              className="w-20 h-20 mx-auto object-contain pointer-events-none drop-shadow-lg"
+            />
+          ) : (
+            popup.emoji
+          )}
         </div>
 
         {/* Title (EXP amount or Level) */}

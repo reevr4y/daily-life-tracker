@@ -64,7 +64,7 @@ export function useGameState() {
   }, [lastActive, setStreak, setLastActive, setStreakBroke]);
 
   const addExp = useCallback((amount) => {
-    setExp(e => Math.max(0, e + amount));
+    setExp(e => Math.max(0, Number(e) + amount));
     recordActivity();
   }, [setExp, recordActivity]);
 
