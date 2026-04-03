@@ -1,9 +1,10 @@
 import { useState, useCallback } from 'react';
 import { SHEETS_API_URL } from '../config';
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
+// ─── localStorage helpers (always used as cache) ─────────────────────────────
 const LS_TASKS    = 'dlt_tasks';
 const LS_EXPENSES = 'dlt_expenses';
+const LS_PAP      = 'dlt_pap_history';
 
 function lsGet(key) {
   try { return JSON.parse(localStorage.getItem(key)) || []; }
@@ -20,19 +21,24 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
-// ─── Google Sheets fetch helpers ─────────────────────────────────────────────
-async function sheetsGet(sheet) {
-  const res = await fetch(`${SHEETS_API_URL}?sheet=${sheet}`);
-  const data = await res.json();
-  return data;
+// ─── Sheets via GET params (no CORS issues) ───────────────────────────────────
+async function sheetsRead(sheet) {
+  const url = `${SHEETS_API_URL}?action=read&sheet=${sheet}`;
+  const res  = await fetch(url);
+  const text = await res.text();
+  return JSON.parse(text);
 }
 
-async function sheetsPost(payload) {
-  await fetch(SHEETS_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(payload),
+async function sheetsWrite(action, sheet, data) {
+  const params = new URLSearchParams({
+    action,
+    sheet,
+    data: JSON.stringify(data),
   });
+  const url = `${SHEETS_API_URL}?${params.toString()}`;
+  const res  = await fetch(url);
+  const text = await res.text();
+  return JSON.parse(text);
 }
 
 // ─── Hook ─────────────────────────────────────────────────────────────────────
@@ -42,89 +48,134 @@ export function useSheetsAPI() {
 
   // ── TASKS ──────────────────────────────────────────────────────────────────
   const fetchTasks = useCallback(async () => {
-    if (!useSheets) return lsGet(LS_TASKS);
-    try {
-      setLoading(true);
-      return await sheetsGet('tasks');
-    } catch (e) {
-      console.warn('Sheets fetch failed, using localStorage', e);
-      return lsGet(LS_TASKS);
-    } finally {
-      setLoading(false);
+    // Always return localStorage immediately (fast + offline-safe)
+    const cached = lsGet(LS_TASKS);
+
+    if (useSheets) {
+      try {
+        setLoading(true);
+        const remote = await sheetsRead('tasks');
+        if (Array.isArray(remote) && remote.length > 0) {
+          // Merge remote into localStorage (remote is source of truth)
+          lsSet(LS_TASKS, remote);
+          return remote;
+        }
+      } catch (e) {
+        console.warn('[Sheets] fetchTasks failed, using localStorage:', e);
+      } finally {
+        setLoading(false);
+      }
     }
+
+    return cached;
   }, [useSheets]);
 
   const addTask = useCallback(async (title) => {
     const task = { id: makeId(), title, status: 'pending', date: todayIso() };
-    if (!useSheets) {
-      const tasks = lsGet(LS_TASKS);
-      lsSet(LS_TASKS, [...tasks, task]);
-      return task;
+
+    // Always update localStorage immediately
+    const tasks = lsGet(LS_TASKS);
+    lsSet(LS_TASKS, [task, ...tasks]);
+
+    // Also write to Sheets async (fire and forget)
+    if (useSheets) {
+      sheetsWrite('insert', 'tasks', task).catch(e =>
+        console.warn('[Sheets] addTask failed:', e)
+      );
     }
-    try {
-      await sheetsPost({ action: 'insert', sheet: 'tasks', data: task });
-    } catch (e) {
-      const tasks = lsGet(LS_TASKS);
-      lsSet(LS_TASKS, [...tasks, task]);
-    }
+
     return task;
   }, [useSheets]);
 
   const updateTask = useCallback(async (id, status) => {
-    if (!useSheets) {
-      const tasks = lsGet(LS_TASKS).map(t => t.id === id ? { ...t, status } : t);
-      lsSet(LS_TASKS, tasks);
-      return;
-    }
-    try {
-      await sheetsPost({ action: 'update', sheet: 'tasks', data: { id, status } });
-    } catch {
-      const tasks = lsGet(LS_TASKS).map(t => t.id === id ? { ...t, status } : t);
-      lsSet(LS_TASKS, tasks);
+    // Always update localStorage immediately
+    const tasks = lsGet(LS_TASKS).map(t => t.id === id ? { ...t, status } : t);
+    lsSet(LS_TASKS, tasks);
+
+    if (useSheets) {
+      sheetsWrite('update', 'tasks', { id, status }).catch(e =>
+        console.warn('[Sheets] updateTask failed:', e)
+      );
     }
   }, [useSheets]);
 
   const deleteTask = useCallback(async (id) => {
-    if (!useSheets) {
-      const tasks = lsGet(LS_TASKS).filter(t => t.id !== id);
-      lsSet(LS_TASKS, tasks);
-      return;
-    }
-    try {
-      await sheetsPost({ action: 'delete', sheet: 'tasks', data: { id } });
-    } catch {
-      const tasks = lsGet(LS_TASKS).filter(t => t.id !== id);
-      lsSet(LS_TASKS, tasks);
+    // Always update localStorage immediately
+    const tasks = lsGet(LS_TASKS).filter(t => t.id !== id);
+    lsSet(LS_TASKS, tasks);
+
+    if (useSheets) {
+      sheetsWrite('delete', 'tasks', { id }).catch(e =>
+        console.warn('[Sheets] deleteTask failed:', e)
+      );
     }
   }, [useSheets]);
 
   // ── EXPENSES ───────────────────────────────────────────────────────────────
   const fetchExpenses = useCallback(async () => {
-    if (!useSheets) return lsGet(LS_EXPENSES);
-    try {
-      setLoading(true);
-      return await sheetsGet('expenses');
-    } catch {
-      return lsGet(LS_EXPENSES);
-    } finally {
-      setLoading(false);
+    const cached = lsGet(LS_EXPENSES);
+
+    if (useSheets) {
+      try {
+        const remote = await sheetsRead('expenses');
+        if (Array.isArray(remote) && remote.length > 0) {
+          lsSet(LS_EXPENSES, remote);
+          return remote;
+        }
+      } catch (e) {
+        console.warn('[Sheets] fetchExpenses failed, using localStorage:', e);
+      }
     }
+
+    return cached;
   }, [useSheets]);
 
   const addExpense = useCallback(async (name, amount) => {
     const expense = { id: makeId(), name, amount: Number(amount), date: todayIso() };
-    if (!useSheets) {
-      const expenses = lsGet(LS_EXPENSES);
-      lsSet(LS_EXPENSES, [...expenses, expense]);
-      return expense;
+
+    // Always update localStorage immediately
+    const expenses = lsGet(LS_EXPENSES);
+    lsSet(LS_EXPENSES, [expense, ...expenses]);
+
+    if (useSheets) {
+      sheetsWrite('insert', 'expenses', expense).catch(e =>
+        console.warn('[Sheets] addExpense failed:', e)
+      );
     }
-    try {
-      await sheetsPost({ action: 'insert', sheet: 'expenses', data: expense });
-    } catch {
-      const expenses = lsGet(LS_EXPENSES);
-      lsSet(LS_EXPENSES, [...expenses, expense]);
-    }
+
     return expense;
+  }, [useSheets]);
+
+  // ── PAP (Daily Photo) ──────────────────────────────────────────────────────
+  const addPapRecord = useCallback(async ({ date, status, timestamp }) => {
+    const record = {
+      id: makeId(),
+      date,
+      status,
+      timestamp: timestamp || new Date().toISOString(),
+    };
+
+    // Save to localStorage
+    const history = lsGet(LS_PAP);
+    const exists  = history.find(p => p.date === date);
+    if (!exists) lsSet(LS_PAP, [record, ...history]);
+
+    // Save to Sheets async (fire & forget)
+    if (useSheets) {
+      sheetsWrite('insert', 'pap', record).catch(e =>
+        console.warn('[Sheets] addPapRecord failed:', e)
+      );
+    }
+
+    return record;
+  }, [useSheets]);
+
+  // ── STREAK sync ───────────────────────────────────────────────────────────
+  const saveStreakToSheets = useCallback(async ({ date, streak_count, pap_done }) => {
+    if (!useSheets) return;
+    sheetsWrite('insert', 'streak', { date, streak_count, pap_done }).catch(e =>
+      console.warn('[Sheets] saveStreak failed:', e)
+    );
   }, [useSheets]);
 
   return {
@@ -135,5 +186,7 @@ export function useSheetsAPI() {
     deleteTask,
     fetchExpenses,
     addExpense,
+    addPapRecord,
+    saveStreakToSheets,
   };
 }

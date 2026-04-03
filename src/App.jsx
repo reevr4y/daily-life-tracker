@@ -4,6 +4,7 @@ import FilterBar      from './components/FilterBar';
 import TaskSection    from './components/TaskSection';
 import ExpenseSection from './components/ExpenseSection';
 import InsightCard    from './components/InsightCard';
+import DailyPhotoTask from './components/DailyPhotoTask';
 import FeedbackToast, { useToast } from './components/FeedbackToast';
 import { useGameState }  from './hooks/useGameState';
 import { useSheetsAPI }  from './hooks/useSheetsAPI';
@@ -21,7 +22,7 @@ export default function App() {
   const [filter, setFilter] = useState('daily');
 
   // ── Game state ────────────────────────────────────────────────────────────
-  const { exp, streak, levelInfo, addExp } = useGameState();
+  const { exp, streak, levelInfo, addExp, streakBroke } = useGameState();
 
   // ── Data state ────────────────────────────────────────────────────────────
   const [tasks,    setTasks]    = useState([]);
@@ -31,15 +32,26 @@ export default function App() {
   const {
     loading,
     fetchTasks,
-    addTask:       apiAddTask,
-    updateTask:    apiUpdateTask,
-    deleteTask:    apiDeleteTask,
+    addTask:          apiAddTask,
+    updateTask:       apiUpdateTask,
+    deleteTask:       apiDeleteTask,
     fetchExpenses,
-    addExpense:    apiAddExpense,
+    addExpense:       apiAddExpense,
+    addPapRecord:     apiAddPap,
+    saveStreakToSheets,
   } = useSheetsAPI();
 
   // ── Toasts ────────────────────────────────────────────────────────────────
   const { toasts, addToast } = useToast();
+
+  // ── Streak broke notification ─────────────────────────────────────────
+  useEffect(() => {
+    if (streakBroke) {
+      setTimeout(() => {
+        addToast('Aduh! Streak kemarin putus gara-gara ga pap 😭 Mulai lagi ya!', 'warn');
+      }, 1500);
+    }
+  }, [streakBroke]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Initial load ──────────────────────────────────────────────────────────
   useEffect(() => {
@@ -131,6 +143,13 @@ export default function App() {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           {/* Left column */}
           <div className="space-y-4">
+            <DailyPhotoTask
+              onExp={addExp}
+              onToast={addToast}
+              onAddPap={apiAddPap}
+              onSaveStreak={saveStreakToSheets}
+              streak={streak}
+            />
             <TaskSection
               tasks={tasks}
               filter={filter}
