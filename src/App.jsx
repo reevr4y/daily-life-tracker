@@ -18,6 +18,9 @@ import ExpenseChart   from './components/ExpenseChart';
 import WeeklyReport, { useWeeklyReportTrigger } from './components/WeeklyReport';
 import FloatingDecorations from './components/FloatingDecorations';
 import SettingsModal from './components/SettingsModal';
+import DeskBuddy from './components/DeskBuddy';
+import AuraEffect from './components/AuraEffect';
+import ScrapbookModal from './components/ScrapbookModal';
 
 export default function App() {
   // ── Dark mode ────────────────────────────────────────────────────────────
@@ -26,6 +29,7 @@ export default function App() {
   const [showWelcome, setShowWelcome] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showScrapbook, setShowScrapbook] = useState(false);
   const [settings, setSettings] = useLocalStorage('dlt_settings', {
     daily: 100000,
     weekly: 700000,
@@ -376,6 +380,15 @@ export default function App() {
               <span>📊</span>
               <span>Laporan</span>
             </button>
+            <button
+              className="history-btn"
+              onClick={() => setShowScrapbook(true)}
+              aria-label="Buka buku kenangan"
+              style={{ background: 'var(--accent)', color: 'var(--text)' }}
+            >
+              <span>📒</span>
+              <span>Scrapbook</span>
+            </button>
           </div>
         </div>
 
@@ -510,6 +523,21 @@ export default function App() {
           setSettings={setSettings}
           onClose={() => setShowSettings(false)}
           onToast={addToast}
+        />
+      )}
+
+      {/* ── Desk Buddy & Auras ── */}
+      <AuraEffect level={levelInfo.level} />
+      <DeskBuddy 
+        levelInfo={levelInfo} 
+        tasksCompletedToday={tasks.filter(t => t.status === 'done' && t.date === new Date().toLocaleDateString('en-CA')).length}
+      />
+
+      {/* ── Scrapbook Modal ── */}
+      {showScrapbook && (
+        <ScrapbookModal
+          onClose={() => setShowScrapbook(false)}
+          papRecords={JSON.parse(localStorage.getItem('dlt_pap_history') || '[]')}
         />
       )}
     </div>
