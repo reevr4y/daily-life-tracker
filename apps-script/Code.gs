@@ -118,7 +118,7 @@ function doGet(e) {
 function handlePhotoUploadGet(e) {
   try {
     const base64Data = e.parameter.photo;
-    const date       = e.parameter.date || new Date().toISOString().slice(0, 10);
+    const date       = e.parameter.date || Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
     const mimeType   = e.parameter.mime || 'image/jpeg';
 
     if (!base64Data) {
@@ -211,7 +211,7 @@ function doPost(e) {
 function handlePhotoUploadPost(payload) {
   try {
     const photo    = payload.photo;
-    const dateStr  = payload.date || new Date().toISOString().slice(0, 10);
+    const dateStr  = payload.date || Utilities.formatDate(new Date(), "GMT+7", "yyyy-MM-dd");
     const mimeType = payload.mime || 'image/jpeg';
 
     if (!photo) {
