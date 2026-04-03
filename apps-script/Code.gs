@@ -51,7 +51,7 @@ function doGet(e) {
 
   // ── READ ──────────────────────────────────────────────────────────────────
   if (action === 'read') {
-    const data = sheet.getDataRange().getValues();
+    const data = sheet.getDataRange().getDisplayValues();
     const rows = data.slice(1).filter(row => row[0]);
     const result = rows.map(row => {
       const obj = {};
