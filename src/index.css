@@ -1801,44 +1801,44 @@ body {
 }
 
 .machii-sprite {
-  width: 120px; /* Scaled down slightly so it's not too huge */
+  width: 120px; 
   height: 120px;
-  background-image: url('/assets/machii.png');
-  background-size: contain;
+  background-size: auto 120px; /* Force height to match div size, making each frame exactly 120px wide */
   background-repeat: no-repeat;
-  background-position: center;
-  image-rendering: auto;
+  background-position: left center;
+  image-rendering: pixelated;
   pointer-events: auto;
   cursor: pointer;
 }
 
 .machii-sprite.idle {
-  animation: machiiBob 2.5s ease-in-out infinite;
+  background-image: url('/assets/machii_idle.png');
+  animation: spriteIdle 1s steps(4) infinite;
 }
 
 .machii-sprite.walk {
-  animation: machiiWaddle 0.5s ease-in-out infinite;
+  background-image: url('/assets/machii_walk.png');
+  animation: spriteWalk 0.8s steps(6) infinite;
 }
 
 .machii-sprite.happy {
-  animation: machiiJump 0.6s ease-out infinite;
+  background-image: url('/assets/machii_happy.png');
+  animation: spriteHappy 0.6s steps(5) infinite;
 }
 
-@keyframes machiiBob {
-  0%, 100% { transform: translateY(0) scaleY(1); }
-  50% { transform: translateY(-4px) scaleY(0.98); }
+@keyframes spriteIdle {
+  from { background-position-x: 0; }
+  to { background-position-x: calc(-120px * 4); }
 }
 
-@keyframes machiiWaddle {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-6px) rotate(4deg); }
-  75% { transform: translateY(-6px) rotate(-4deg); }
+@keyframes spriteWalk {
+  from { background-position-x: 0; }
+  to { background-position-x: calc(-120px * 6); }
 }
 
-@keyframes machiiJump {
-  0%, 100% { transform: translateY(0) scale(1, 1); }
-  30% { transform: translateY(-20px) scale(0.95, 1.05); }
-  70% { transform: translateY(-10px) scale(1.02, 0.98); }
+@keyframes spriteHappy {
+  from { background-position-x: 0; }
+  to { background-position-x: calc(-120px * 5); }
 }
 
 .machii-name-tag {
