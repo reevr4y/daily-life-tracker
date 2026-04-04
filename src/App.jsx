@@ -392,6 +392,14 @@ export default function App() {
           </div>
         </div>
 
+        {/* ── Desk Buddy (Hero Cat) Placement ── */}
+        <div className="flex justify-center -my-2 z-10 relative pointer-events-none">
+          <DeskBuddy 
+            levelInfo={levelInfo} 
+            tasksCompletedToday={tasks.filter(t => t.status === 'done' && t.date === new Date().toLocaleDateString('en-CA')).length}
+          />
+        </div>
+
         {/* ── Main 2-Column Grid (From Wireframe) ── */}
         <div className="main-grid">
 
@@ -528,10 +536,6 @@ export default function App() {
 
       {/* ── Desk Buddy & Auras ── */}
       <AuraEffect level={levelInfo.level} />
-      <DeskBuddy 
-        levelInfo={levelInfo} 
-        tasksCompletedToday={tasks.filter(t => t.status === 'done' && t.date === new Date().toLocaleDateString('en-CA')).length}
-      />
 
       {/* ── Scrapbook Modal ── */}
       {showScrapbook && (
