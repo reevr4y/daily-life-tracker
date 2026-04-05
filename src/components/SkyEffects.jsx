@@ -1,11 +1,12 @@
 import React, { useMemo } from 'react';
 
 const THEME_AURORA_COLORS = {
-  matcha:     ['rgba(123, 174, 127, 0.4)', 'rgba(230, 211, 179, 0.3)'],
-  strawberry: ['rgba(255, 138, 161, 0.4)', 'rgba(255, 212, 219, 0.3)'],
-  peach:      ['rgba(255, 179, 102, 0.4)', 'rgba(255, 229, 204, 0.3)'],
-  lavender:   ['rgba(160, 132, 232, 0.4)', 'rgba(232, 221, 255, 0.3)'],
+  matcha:     ['rgba(123, 174, 127, 0.7)', 'rgba(230, 211, 179, 0.6)'],
+  strawberry: ['rgba(255, 138, 161, 0.7)', 'rgba(255, 212, 219, 0.6)'],
+  peach:      ['rgba(255, 179, 102, 0.7)', 'rgba(255, 229, 204, 0.6)'],
+  lavender:   ['rgba(160, 132, 232, 0.7)', 'rgba(232, 221, 255, 0.6)'],
 };
+
 
 export default function SkyEffects({ theme = 'matcha' }) {
   const colors = THEME_AURORA_COLORS[theme] || THEME_AURORA_COLORS.matcha;
