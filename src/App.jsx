@@ -37,8 +37,16 @@ export default function App() {
   const [settings, setSettings] = useLocalStorage('dlt_settings', {
     daily: 100000,
     weekly: 700000,
-    monthly: 2000000
+    monthly: 2000000,
+    stickers: []
   });
+  
+  const handleUpdateStickers = useCallback((updater) => {
+    setSettings(prev => ({
+      ...prev,
+      stickers: typeof updater === 'function' ? updater(prev.stickers || []) : updater
+    }));
+  }, [setSettings]);
   const { show: showWeeklyReport, setShow: setShowWeeklyReport, dismiss: dismissWeekly } = useWeeklyReportTrigger();
   
   useEffect(() => {
@@ -559,7 +567,10 @@ export default function App() {
       )}
 
       {/* ── Sticker Manager ── */}
-      <StickerManager />
+      <StickerManager 
+        stickers={settings?.stickers || []}
+        setStickers={handleUpdateStickers}
+      />
 
       {/* ── Interactive Trails ── */}
       <InteractiveTrails />

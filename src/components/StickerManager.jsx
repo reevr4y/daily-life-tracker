@@ -8,18 +8,10 @@ const STICKER_ASSETS = [
   { id: 'yellow_star', src: 'assets/stickers/yellow_star.png', label: 'Star' },
 ];
 
-export default function StickerManager() {
-  const [stickers, setStickers] = useState(() => {
-    const saved = localStorage.getItem('dlt_stickers');
-    return saved ? JSON.parse(saved) : [];
-  });
+export default function StickerManager({ stickers = [], setStickers }) {
   const [isOpen, setIsOpen] = useState(false);
   const [draggingId, setDraggingId] = useState(null);
   const dragOffset = useRef({ x: 0, y: 0 });
-
-  useEffect(() => {
-    localStorage.setItem('dlt_stickers', JSON.stringify(stickers));
-  }, [stickers]);
 
   const addSticker = (asset) => {
     const id = Date.now().toString();
@@ -27,8 +19,8 @@ export default function StickerManager() {
       id,
       assetId: asset.id,
       src: asset.src,
-      x: window.innerWidth / 2 - 50 + (Math.random() * 40 - 20),
-      y: window.innerHeight / 2 - 50 + (Math.random() * 40 - 20),
+      x: window.innerWidth / 2 + window.scrollX - 40 + (Math.random() * 40 - 20),
+      y: window.innerHeight / 2 + window.scrollY - 40 + (Math.random() * 40 - 20),
       scale: 1,
       rotation: (Math.random() * 20) - 10,
     };
@@ -43,8 +35,8 @@ export default function StickerManager() {
     if (!sticker) return;
     
     dragOffset.current = {
-      x: touch.clientX - sticker.x,
-      y: touch.clientY - sticker.y
+      x: touch.pageX - sticker.x,
+      y: touch.pageY - sticker.y
     };
     setDraggingId(id);
   };
@@ -57,8 +49,8 @@ export default function StickerManager() {
       if (s.id === draggingId) {
         return {
           ...s,
-          x: touch.clientX - dragOffset.current.x,
-          y: touch.clientY - dragOffset.current.y
+          x: touch.pageX - dragOffset.current.x,
+          y: touch.pageY - dragOffset.current.y
         };
       }
       return s;
@@ -90,8 +82,8 @@ export default function StickerManager() {
 
   return (
     <>
-      {/* ── Sticker Layer ── */}
-      <div className="fixed inset-0 pointer-events-none z-[1000]">
+      {/* ── Sticker Layer (Hooks onto the whole App document/page) ── */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-[1000] overflow-hidden" style={{ minHeight: '100vh' }}>
         {stickers.map(s => (
           <div
             key={s.id}
