@@ -1,11 +1,28 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
 const STICKER_ASSETS = [
+  // Original
   { id: 'matcha_leaf', src: 'assets/stickers/matcha_leaf.png', label: 'Matcha Leaf' },
   { id: 'pink_heart', src: 'assets/stickers/pink_heart.png', label: 'Pink Heart' },
   { id: 'cat_head',   src: 'assets/stickers/cat_head.png', label: 'Cat Head' },
   { id: 'matcha_cup',  src: 'assets/stickers/matcha_cup.png', label: 'Matcha Cup' },
   { id: 'yellow_star', src: 'assets/stickers/yellow_star.png', label: 'Star' },
+  // Tambahan Baru
+  { id: 'bunga',      src: 'assets/stickers/bunga.png', label: 'Bunga' },
+  { id: 'cantik',     src: 'assets/stickers/cantik.jpeg', label: 'Cantik' },
+  { id: 'favorit',    src: 'assets/stickers/favorit.jpeg', label: 'Favorit' },
+  { id: 'gemes',      src: 'assets/stickers/gemes.png', label: 'Gemes' },
+  { id: 'hadiah',     src: 'assets/stickers/hadiah.png', label: 'Hadiah' },
+  { id: 'hah',        src: 'assets/stickers/hah.png', label: 'Hah' },
+  { id: 'hati',       src: 'assets/stickers/hati.png', label: 'Hati' },
+  { id: 'hmph',       src: 'assets/stickers/hmph.png', label: 'Hmph' },
+  { id: 'keren',      src: 'assets/stickers/keren.png', label: 'Keren' },
+  { id: 'makan',      src: 'assets/stickers/makan.png', label: 'Makan' },
+  { id: 'matcha',     src: 'assets/stickers/matcha.png', label: 'Matcha' },
+  { id: 'miaw',       src: 'assets/stickers/miaw.png', label: 'Miaw' },
+  { id: 'oke',        src: 'assets/stickers/oke.png', label: 'Oke' },
+  { id: 'sedih',      src: 'assets/stickers/sedih.png', label: 'Sedih' },
+  { id: 'semangat2',  src: 'assets/stickers/semangat2.png', label: 'Semangat' }
 ];
 
 export default function StickerManager({ stickers = [], setStickers }) {
