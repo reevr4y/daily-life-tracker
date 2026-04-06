@@ -1,22 +1,20 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { filterByPeriod } from '../utils/insights';
 import { fireSmallConfetti } from '../utils/confetti';
 import { playPop, playChime } from '../utils/sounds';
+import TaskItem from './TaskItem';
 
 export default function TaskSection({ tasks, filter, onAdd, onComplete, onDelete, onToast }) {
   const [input, setInput] = useState('');
-  const [removingId, setRemovingId] = useState(null);
   const inputRef = useRef(null);
 
   const today = new Date().toLocaleDateString('en-CA');
   const filtered = filterByPeriod(tasks, filter);
   
-  // Pending tasks: still editable (ONLY TODAY)
-  const pending   = filtered.filter(t => t.status === 'pending' && t.date === today);
-  // Missed tasks: locked
-  const missed    = filtered.filter(t => t.status === 'missed' || (t.status === 'pending' && t.date < today));
-  // Done (ONLY TODAY or overall?) - user said "harian" so we'll show today's done
-  const done      = filtered.filter(t => t.status === 'done' && t.date === today);
+  const pending = filtered.filter(t => t.status === 'pending' && t.date === today);
+  const missed  = filtered.filter(t => t.status === 'missed' || (t.status === 'pending' && t.date < today));
+  const done    = filtered.filter(t => t.status === 'done' && t.date === today);
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -28,9 +26,9 @@ export default function TaskSection({ tasks, filter, onAdd, onComplete, onDelete
     inputRef.current?.focus();
   };
 
-  const handleComplete = (task, e) => {
+  const handleCompleteInternal = useCallback((task, e) => {
     if (task.status === 'done' || task.status === 'missed') return;
-    if (task.date < today) return; // Locked
+    if (task.date < today) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
     const x = rect.left / window.innerWidth;
@@ -39,75 +37,19 @@ export default function TaskSection({ tasks, filter, onAdd, onComplete, onDelete
     playChime();
     onToast('Cie produktif 😏✨', 'success');
     onComplete(task.id);
-  };
+  }, [onComplete, onToast, today]);
 
-  const handleDelete = async (id, isLocked) => {
+  const handleDeleteInternal = useCallback(async (id, isLocked) => {
     if (isLocked) return;
-    setRemovingId(id);
     playPop();
-    setTimeout(async () => {
-      await onDelete(id);
-      setRemovingId(null);
-    }, 300);
-  };
+    await onDelete(id);
+  }, [onDelete]);
 
-  const renderTask = (task) => {
-    const isDone = task.status === 'done';
-    const isMissed = task.status === 'missed' || (task.status === 'pending' && task.date < today);
-    const isRemoving = removingId === task.id;
-
-    return (
-      <div
-        key={task.id}
-        className={`task-item ${isDone ? 'completed' : ''} ${isMissed ? 'missed' : ''} ${isRemoving ? 'removing' : ''}`}
-      >
-        {/* Checkbox */}
-        <button
-          className={`custom-checkbox ${isDone ? 'checked' : ''} ${isMissed ? 'locked' : ''}`}
-          onClick={(e) => handleComplete(task, e)}
-          aria-label="Complete task"
-          disabled={isDone || isMissed}
-        >
-          {isDone && (
-            <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-              <path d="M1 4.5L4 7.5L10 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-          )}
-          {isMissed && !isDone && <span className="text-[10px] transform -rotate-12">❌</span>}
-        </button>
-
-        {/* Text */}
-        <div className="flex-1 min-w-0 flex flex-col">
-          <div className="flex items-center gap-2">
-            <span
-              className={`task-text text-sm font-medium ${isDone || isMissed ? 'struck' : ''}`}
-              style={{ color: isMissed ? 'var(--muted)' : 'var(--text)' }}
-            >
-              {task.title}
-            </span>
-            {isMissed && !isDone && (
-              <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300 font-bold uppercase tracking-wider">
-                Missed
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Delete button (hidden if missed/done) */}
-        {!isDone && !isMissed && (
-          <button
-            onClick={() => handleDelete(task.id, isMissed)}
-            className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-full transition-all duration-200 hover:scale-110"
-            style={{ color: 'var(--muted)' }}
-            aria-label="Delete task"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-            </svg>
-          </button>
-        )}
-      </div>
-    );
+  const listConfig = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, scale: 0.95 },
+    transition: { duration: 0.2 }
   };
 
   return (
@@ -154,14 +96,36 @@ export default function TaskSection({ tasks, filter, onAdd, onComplete, onDelete
           </div>
         )}
 
-        {pending.map(renderTask)}
+        <AnimatePresence mode="popLayout" initial={false}>
+          {pending.map(task => (
+            <motion.div key={task.id} layout {...listConfig}>
+              <TaskItem
+                task={task}
+                today={today}
+                onComplete={handleCompleteInternal}
+                onDelete={handleDeleteInternal}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
         {missed.length > 0 && (
           <>
             <p className="text-xs font-bold pt-4 pb-1 text-red-500 dark:text-red-400" style={{ letterSpacing: '0.05em' }}>
               LEWAT DEADLINE (MISSED) ❌
             </p>
-            {missed.map(renderTask)}
+            <AnimatePresence mode="popLayout">
+              {missed.map(task => (
+                <motion.div key={task.id} layout {...listConfig}>
+                  <TaskItem
+                    task={task}
+                    today={today}
+                    onComplete={handleCompleteInternal}
+                    onDelete={handleDeleteInternal}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </>
         )}
 
@@ -170,7 +134,18 @@ export default function TaskSection({ tasks, filter, onAdd, onComplete, onDelete
             <p className="text-xs font-semibold pt-4 pb-1" style={{ color: 'var(--muted)' }}>
               SELESAI · {done.length} ✅
             </p>
-            {done.map(renderTask)}
+            <AnimatePresence mode="popLayout">
+              {done.map(task => (
+                <motion.div key={task.id} layout {...listConfig}>
+                  <TaskItem
+                    task={task}
+                    today={today}
+                    onComplete={handleCompleteInternal}
+                    onDelete={handleDeleteInternal}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </>
         )}
       </div>

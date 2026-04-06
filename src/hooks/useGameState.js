@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import { useLocalStorage } from './useLocalStorage';
+import { useDebouncedLocalStorage } from './useDebouncedLocalStorage';
 import { getLevelInfo } from '../utils/levels';
 
 const PAP_KEY   = 'dlt_daily_pap';
@@ -26,9 +27,9 @@ function didPapToday() {
 }
 
 export function useGameState() {
-  const [exp,        setExp       ] = useLocalStorage('dlt_exp',        0);
-  const [streak,     setStreak    ] = useLocalStorage('dlt_streak',     0);
-  const [lastActive, setLastActive] = useLocalStorage('dlt_lastActive', '');
+  const [exp,        setExp       ] = useDebouncedLocalStorage('dlt_exp',        0, 300);
+  const [streak,     setStreak    ] = useDebouncedLocalStorage('dlt_streak',     0, 300);
+  const [lastActive, setLastActive] = useDebouncedLocalStorage('dlt_lastActive', '', 300);
   const [streakBroke,setStreakBroke] = useLocalStorage('dlt_streakBroke', false);
 
   const levelInfo = getLevelInfo(exp);

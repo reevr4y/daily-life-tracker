@@ -112,8 +112,11 @@
 
 html { scroll-behavior: smooth; }
 
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  width: 100%;
   font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   background-color: var(--bg);
   /* Subtle gradient background */
@@ -1512,19 +1515,35 @@ body {
 
 /* ─── App container ─── */
 .app-container {
+  width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 1.5rem 2rem 3rem;
+  padding: 1rem 1rem 5rem; /* Base mobile padding + bottom safety */
   position: relative;
   z-index: 1;
 }
 
-/* ─── Header row: 3/4 header + 1/4 date card ─── */
+@media (min-width: 768px) {
+  .app-container {
+    padding: 2rem 2.5rem 4rem;
+  }
+}
+
+/* ─── Header row ─── */
 .header-row {
   display: flex;
-  gap: 1.25rem;
+  flex-direction: column; /* Stack on mobile */
+  gap: 1rem;
   align-items: stretch;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .header-row {
+    flex-direction: row;
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
 }
 
 .header-main {
@@ -1532,20 +1551,29 @@ body {
   min-width: 0;
 }
 
-/* Remove the default mb on Header card since header-row handles spacing */
 .header-main .card {
-  margin-bottom: 0;
   height: 100%;
 }
 
 .header-date-card {
-  flex: 1;
-  min-width: 120px;
-  max-width: 180px;
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-align: center;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  padding: 1rem 1.25rem !important;
+}
+
+@media (min-width: 768px) {
+  .header-date-card {
+    width: 180px;
+    flex-shrink: 0;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    padding: 1.5rem !important;
+  }
 }
 
 /* On mobile, stack vertically */
@@ -1566,38 +1594,105 @@ body {
 /* ─── Action bar ─── */
 .action-bar {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
+  flex-direction: column; /* Buttons split onto multiple rows or wraps on mobile */
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
-/* ─── Main 2-column grid (Wireframe Optimized) ─── */
+.action-bar-buttons {
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Hide scrollbar for clean look */
+}
+
+.action-bar-buttons::-webkit-scrollbar { display: none; }
+
+@media (min-width: 768px) {
+  .action-bar {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .action-bar-buttons {
+    width: auto;
+    overflow-x: visible;
+  }
+}
+
+/* ─── Main Grid Layout ─── */
 .main-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+  display: flex;
+  flex-direction: column; /* Stack by default on mobile */
+  gap: 1rem;
   margin-bottom: 2rem;
 }
 
 .col-left, .col-right {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-}
-
-.insight-container {
-  grid-column: 1 / -1;
+  gap: 1rem;
   width: 100%;
 }
 
-/* Tablet & Desktop */
 @media (min-width: 1024px) {
   .main-grid {
-    grid-template-columns: 1.15fr 0.85fr; /* Left slightly wider */
-    align-items: start;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
   }
+  .col-left {
+    grid-column: span 7;
+  }
+  .col-right {
+    grid-column: span 5;
+  }
+  .insight-container {
+    grid-column: span 12;
+  }
+}
+
+/* ─── Insight Grid ─── */
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .insight-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .insight-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.insight-tile {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  text-align: center;
+  align-items: center;
+}
+
+.insight-tile:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-2);
+  box-shadow: 0 4px 12px var(--shadow);
 }
 
 /* ─── Decorative blob shapes ─── */
@@ -2101,4 +2196,127 @@ body {
   100% { transform: translateX(-400px) translateY(400px) rotate(-45deg) scaleX(1); opacity: 0; }
 }
 
+/* ─── Interactive Emote Reaction ─── */
+/* ─── Floating Action Dock System ─── */
+.action-dock-item {
+  position: fixed;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.dock-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 20px; /* Modern squircle-like radius */
+  border: 1px solid var(--border);
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 
+    0 8px 32px var(--shadow),
+    0 1px 2px rgba(255, 255, 255, 0.4) inset;
+  font-size: 1.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--text);
+  overflow: hidden;
+}
+
+.dark .dock-btn {
+  background: rgba(45, 42, 38, 0.7);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 1px 1px rgba(255, 255, 255, 0.05) inset;
+}
+
+.dock-btn:hover {
+  transform: translateY(-5px) scale(1.08);
+  box-shadow: 
+    0 12px 40px var(--shadow-md),
+    0 0 15px var(--glow-gold);
+  border-color: var(--accent-2);
+}
+
+.dock-btn:active {
+  transform: scale(0.92);
+  transition: transform 0.1s ease;
+}
+
+/* Specific Positions */
+.emote-dock {
+  bottom: 8.5rem;
+  left: 1.5rem;
+}
+
+.sticker-dock {
+  bottom: 2.25rem;
+  left: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .dock-btn {
+    width: 52px;
+    height: 52px;
+    font-size: 1.4rem;
+  }
+  .emote-dock {
+    bottom: 8rem;
+    left: 1.25rem;
+  }
+  .sticker-dock {
+    bottom: 2rem;
+    left: 1.25rem;
+  }
+}
+
+.emote-layer {
+  position: absolute;
+  bottom: 60px; /* Spawn above button */
+  left: 50%;
+  width: 0;
+  height: 0;
+  pointer-events: none; /* Let clicks pass through */
+}
+
+.floating-emote {
+  position: absolute;
+  bottom: 0;
+  font-size: 2.2rem;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+  will-change: transform, opacity;
+  animation: emote-float var(--anim-duration, 1.5s) ease-out forwards;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.floating-emote-exp {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--success);
+  margin-bottom: -0.2rem;
+  text-shadow: 0px 2px 4px var(--bg);
+}
+
+@keyframes emote-float {
+  0% {
+    transform: translate(-50%, 0) scale(0.5) rotate(calc(var(--angle, 0) * 1deg));
+    opacity: 0;
+  }
+  15% {
+    transform: translate(calc(-50% + var(--drift-x, 0)), -30px) scale(1.2) rotate(calc(var(--angle, 0) * 0.5deg));
+    opacity: 1;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--drift-x, 0) * 2), -150px) scale(1) rotate(calc(var(--angle, 0) * -1deg));
+    opacity: 0;
+  }
+}

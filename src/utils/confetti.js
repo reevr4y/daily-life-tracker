@@ -1,6 +1,5 @@
-import confetti from 'canvas-confetti';
-
-export function fireConfetti() {
+export async function fireConfetti() {
+  const confetti = (await import('canvas-confetti')).default;
   // Soft, cream-toned confetti burst
   confetti({
     particleCount: 60,
@@ -13,7 +12,8 @@ export function fireConfetti() {
   });
 }
 
-export function fireSmallConfetti(x, y) {
+export async function fireSmallConfetti(x, y) {
+  const confetti = (await import('canvas-confetti')).default;
   confetti({
     particleCount: 25,
     spread: 45,

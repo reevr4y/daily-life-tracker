@@ -32,74 +32,91 @@ export default function InsightCard({ tasks, expenses, filter, settings }) {
   };
 
   return (
-    <div className="card p-5">
-      <div className="section-title mb-1">
-        <span>📊</span>
-        <span>Insight</span>
+    <div className="card p-6">
+      <div className="section-title mb-6 flex items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">📊</span>
+          <span className="text-lg font-bold">Insight Ringkasan</span>
+        </div>
         <span
-          className="ml-auto text-xs font-normal px-2 py-0.5 rounded-full"
+          className="ml-auto text-xs font-semibold px-3 py-1 rounded-full border border-accent-2"
           style={{ background: 'var(--accent)', color: 'var(--text)' }}
         >
           {periodLabel[filter]}
         </span>
       </div>
 
-      {/* Mood messages */}
-      <div className="space-y-2 mb-4">
+      {/* Mood messages - Responsive Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div
-          className="px-3 py-2.5 rounded-xl text-sm font-medium"
+          className="p-4 rounded-2xl flex flex-col gap-2 transition-transform hover:scale-[1.02]"
           style={{
             background: 'var(--bg)',
-            border: '1px solid var(--border)',
-            color: msgColor[prodMsg.type],
+            border: `1.5px solid ${prodMsg.type === 'good' || prodMsg.type === 'great' ? 'var(--success)' : 'var(--border)'}`,
           }}
         >
-          {prodMsg.text}
+          <span className="text-xs font-bold uppercase tracking-wider opacity-60">Produktivitas</span>
+          <p className="text-sm font-medium leading-relaxed" style={{ color: msgColor[prodMsg.type] }}>
+            {prodMsg.text}
+          </p>
         </div>
         <div
-          className="px-3 py-2.5 rounded-xl text-sm font-medium"
+          className="p-4 rounded-2xl flex flex-col gap-2 transition-transform hover:scale-[1.02]"
           style={{
             background: 'var(--bg)',
-            border: '1px solid var(--border)',
-            color: msgColor[spendMsg.type],
+            border: `1.5px solid ${spendMsg.type === 'good' || spendMsg.type === 'neutral' ? 'var(--border)' : 'var(--danger)'}`,
           }}
         >
-          {spendMsg.text}
+          <span className="text-xs font-bold uppercase tracking-wider opacity-60">Pengeluaran</span>
+          <p className="text-sm font-medium leading-relaxed" style={{ color: msgColor[spendMsg.type] }}>
+            {spendMsg.text}
+          </p>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
-        <InsightRow
+      {/* Stats - Proportional Grid */}
+      <div className="insight-grid">
+        <InsightTile
           icon="✅"
-          label="Tugas selesai"
-          value={`${completedCount} / ${totalTasks}`}
+          label="Tugas Selesai"
+          value={completedCount === 0 && totalTasks === 0 ? '0' : `${completedCount} / ${totalTasks}`}
+          subText="Target tercapai"
         />
-        <InsightRow
+        <InsightTile
           icon="💸"
-          label="Total pengeluaran"
+          label="Total Dana"
           value={formatCurrency(totalSpending)}
+          subText="Periode ini"
         />
-        {mostExpense && (
-          <InsightRow
+        {mostExpense ? (
+          <InsightTile
             icon="🛍️"
-            label="Paling sering dibeli"
+            label="Sering Dibeli"
             value={mostExpense}
             capitalize
+            subText="Kategori utama"
+          />
+        ) : (
+          <InsightTile
+            icon="✨"
+            label="Status Belanja"
+            value="Hemat!"
+            subText="Belum ada jajan"
           />
         )}
-        {bestDay && (
-          <InsightRow
+        {bestDay ? (
+          <InsightTile
             icon="📅"
-            label="Hari paling produktif"
+            label="Hari Puncak"
             value={bestDay}
+            subText="Paling rajin"
           />
-        )}
-        {filteredExpenses.length > 0 && (
-          <InsightRow
-            icon="📦"
-            label="Jumlah transaksi"
-            value={`${filteredExpenses.length}x`}
+        ) : (
+          <InsightTile
+            icon="🚀"
+            label="Mulai Sekarang"
+            value="Ayooo!"
+            subText="Tunggu apa lagi"
           />
         )}
       </div>
@@ -107,19 +124,22 @@ export default function InsightCard({ tasks, expenses, filter, settings }) {
   );
 }
 
-function InsightRow({ icon, label, value, capitalize = false }) {
+function InsightTile({ icon, label, value, capitalize = false, subText }) {
   return (
-    <div className="insight-row">
-      <span className="flex items-center gap-1.5" style={{ color: 'var(--muted)' }}>
-        <span>{icon}</span>
-        <span>{label}</span>
-      </span>
-      <span
-        className={`font-semibold text-right ${capitalize ? 'capitalize' : ''}`}
-        style={{ color: 'var(--text)' }}
-      >
-        {value}
-      </span>
+    <div className="insight-tile">
+      <div className="w-10 h-10 rounded-full bg-card flex items-center justify-center text-xl shadow-sm border border-border/50">
+        {icon}
+      </div>
+      <div className="flex flex-col items-center">
+        <span className="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-0.5">{label}</span>
+        <span
+          className={`text-base font-bold truncate max-w-full px-1 ${capitalize ? 'capitalize' : ''}`}
+          style={{ color: 'var(--text)' }}
+        >
+          {value}
+        </span>
+        <span className="text-[9px] font-medium opacity-40">{subText}</span>
+      </div>
     </div>
   );
 }

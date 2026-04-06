@@ -267,6 +267,33 @@ export function useSheetsAPI() {
     return record;
   }, [useSheets]);
 
+  // ── Fetch ALL PAP history from Sheets ────────────────────────────────────
+  const fetchPapHistory = useCallback(async () => {
+    if (!useSheets) return lsGet(LS_PAP);
+
+    try {
+      const remote = await sheetsRead('pap');
+      if (Array.isArray(remote)) {
+        const local = lsGet(LS_PAP);
+        // Merge: prefer remote records if conflict, avoid duplicates by ID or date
+        const map = new Map();
+        local.forEach(p => map.set(p.date, p));
+        remote.forEach(p => {
+          if (p.status === 'done' && p.photo_url) {
+            map.set(p.date, p);
+          }
+        });
+        
+        const merged = Array.from(map.values()).sort((a, b) => new Date(b.date) - new Date(a.date));
+        lsSet(LS_PAP, merged);
+        return merged;
+      }
+    } catch (e) {
+      console.warn('[Sheets] fetchPapHistory failed:', e);
+    }
+    return lsGet(LS_PAP);
+  }, [useSheets]);
+
   // ── Fetch today's PAP from Sheets (for cross-device sync) ─────────────────
   const fetchTodayPap = useCallback(async () => {
     if (!useSheets) return null;
@@ -358,6 +385,7 @@ export function useSheetsAPI() {
     deleteExpense,
     addPapRecord,
     fetchTodayPap,
+    fetchPapHistory,
     saveStreakToSheets,
     fetchGameState,
     updateGameState,

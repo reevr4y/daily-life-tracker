@@ -64,3 +64,48 @@ export function playMeow() {
     console.error(e);
   }
 }
+
+export function playRandomEmoteSound() {
+  try {
+    const ctx = getAudioContext();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    // Choose a random sound type: 0 = Pop, 1 = Bubble, 2 = Sparkle ping
+    const type = Math.floor(Math.random() * 3);
+    const now = ctx.currentTime;
+    
+    if (type === 0) {
+      // Pop
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, now);
+      osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+      gain.gain.setValueAtTime(0.2, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+      osc.start(now);
+      osc.stop(now + 0.15);
+    } else if (type === 1) {
+      // Bubble
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(400, now);
+      osc.frequency.linearRampToValueAtTime(600, now + 0.05);
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+      osc.start(now);
+      osc.stop(now + 0.2);
+    } else {
+      // Sparkle ping
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1200 + Math.random() * 400, now);
+      gain.gain.setValueAtTime(0.1, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+      osc.start(now);
+      osc.stop(now + 0.3);
+    }
+  } catch(e) {
+    // ignore
+  }
+}

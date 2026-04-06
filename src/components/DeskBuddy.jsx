@@ -92,7 +92,8 @@ export default function DeskBuddy({ tasksCompletedToday = 0 }) {
     
     // 1. Determine direction
     const walkRight = Math.random() > 0.5;
-    const dist = 350; // Long distance
+    // Responsive walk distance
+    const dist = window.innerWidth < 640 ? 60 : 350; 
     const targetX = walkRight ? dist : -dist;
     
     // 2. Set direction and start walk animation
@@ -126,7 +127,7 @@ export default function DeskBuddy({ tasksCompletedToday = 0 }) {
   return (
     <div 
       ref={containerRef}
-      className="flex flex-col items-center pointer-events-auto relative z-[100] mt-8 mb-4 transition-transform duration-300"
+      className="flex flex-col items-center pointer-events-auto relative z-[100] mt-4 mb-2 md:mt-8 md:mb-4 transition-all duration-300 scale-90 md:scale-100"
     >
       
       {/* --- Translate Container (The Walk Speed) --- */}

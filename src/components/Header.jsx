@@ -11,24 +11,24 @@ export default function Header({ levelInfo, exp, streak, darkMode, onToggleDark,
   return (
     <header className="w-full">
       {/* Top row: greeting + dark toggle */}
-      <div className="flex items-start justify-between gap-3 mb-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <div className={`flex-1 min-w-0 transition-all duration-700 ${animate ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'}`}>
-          <h1 className="text-2xl font-bold leading-tight truncate" style={{ color: 'var(--text)' }}>
+          <h1 className="text-xl md:text-2xl font-bold leading-tight truncate" style={{ color: 'var(--text)' }}>
             Matchaaawwww 👋
           </h1>
-          <p className="text-sm mt-0.5 truncate" style={{ color: 'var(--muted)' }}>
+          <p className="text-xs md:text-sm mt-0.5" style={{ color: 'var(--muted)' }}>
             Selamat datang di ruang produktifmu~
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-shrink-0 mt-1">
+        <div className="flex items-center gap-2 md:gap-3 flex-shrink-0 w-full sm:w-auto justify-between sm:justify-end">
           {/* Theme Picker */}
           <ThemePicker currentTheme={theme} onChange={onThemeChange} />
           
           <div className="flex items-center gap-2">
             {/* Streak badge */}
             {streak > 0 && (
-              <div className="streak-badge flex-shrink-0">
+              <div className="streak-badge flex-shrink-0 text-[10px] md:text-xs">
                 <span className="streak-fire">🔥</span> {streak}d
               </div>
             )}
@@ -36,7 +36,7 @@ export default function Header({ levelInfo, exp, streak, darkMode, onToggleDark,
             {/* Settings button */}
             <button
               onClick={onShowSettings}
-              className="w-10 h-10 flex items-center justify-center rounded-full bg-accent border-[1.5px] border-accent-2 hover:scale-110 active:scale-95 transition-all text-base flex-shrink-0"
+              className="w-9 h-9 md:w-10 md:h-10 flex items-center justify-center rounded-full bg-accent border-[1.5px] border-accent-2 hover:scale-110 active:scale-95 transition-all text-sm md:text-base flex-shrink-0"
               title="Pengaturan"
               aria-label="Open settings"
             >
@@ -50,7 +50,7 @@ export default function Header({ levelInfo, exp, streak, darkMode, onToggleDark,
               title={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
               aria-label="Toggle dark mode"
             >
-              <div className="dark-toggle-knob flex items-center justify-center text-xs">
+              <div className="dark-toggle-knob flex items-center justify-center text-[10px] md:text-xs">
                 {darkMode ? '🌙' : '☀️'}
               </div>
             </button>

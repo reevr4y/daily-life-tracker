@@ -6,11 +6,11 @@ const FILTERS = [
 
 export default function FilterBar({ active, onChange }) {
   return (
-    <div className="flex items-center gap-2 flex-1">
+    <div className="flex items-center gap-1.5 md:gap-2 flex-wrap">
       {FILTERS.map(f => (
         <button
           key={f.key}
-          className={`filter-pill ${active === f.key ? 'active' : ''}`}
+          className={`filter-pill text-[11px] md:text-sm py-1.5 px-3 md:px-4 ${active === f.key ? 'active' : ''}`}
           onClick={() => onChange(f.key)}
         >
           {f.label}

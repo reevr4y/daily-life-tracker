@@ -13,6 +13,7 @@ import ExpPopup, { useExpPopup } from './components/ExpPopup';
 import { useGameState }  from './hooks/useGameState';
 import { useSheetsAPI }  from './hooks/useSheetsAPI';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useDebouncedLocalStorage } from './hooks/useDebouncedLocalStorage';
 import { fireConfetti }  from './utils/confetti';
 import ExpenseChart   from './components/ExpenseChart';
 import WeeklyReport, { useWeeklyReportTrigger } from './components/WeeklyReport';
@@ -22,24 +23,25 @@ import DeskBuddy from './components/DeskBuddy';
 import AuraEffect from './components/AuraEffect';
 import ScrapbookModal from './components/ScrapbookModal';
 import InteractiveTrails from './components/InteractiveTrails';
+import EmoteReaction from './components/EmoteReaction';
 import StickerManager from './components/StickerManager';
 import SkyEffects from './components/SkyEffects';
 
 
 export default function App() {
   // ── Dark mode ────────────────────────────────────────────────────────────
-  const [darkMode, setDarkMode] = useLocalStorage('dlt_dark', false);
-  const [theme, setTheme]       = useLocalStorage('dlt_theme', 'matcha');
+  const [darkMode, setDarkMode] = useDebouncedLocalStorage('dlt_dark', false, 1000);
+  const [theme, setTheme]       = useDebouncedLocalStorage('dlt_theme', 'matcha', 1000);
   const [showWelcome, setShowWelcome] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showScrapbook, setShowScrapbook] = useState(false);
-  const [settings, setSettings] = useLocalStorage('dlt_settings', {
+  const [settings, setSettings] = useDebouncedLocalStorage('dlt_settings', {
     daily: 100000,
     weekly: 700000,
     monthly: 2000000,
     stickers: []
-  });
+  }, 1000);
   
   const handleUpdateStickers = useCallback((updater) => {
     setSettings(prev => ({
@@ -63,6 +65,7 @@ export default function App() {
   // ── Data state ────────────────────────────────────────────────────────────
   const [tasks,    setTasks]    = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [papHistory, setPapHistory] = useState([]);
   const [ready,    setReady]    = useState(false);
 
   const {
@@ -76,6 +79,7 @@ export default function App() {
     deleteExpense:    apiDeleteExpense,
     addPapRecord:     apiAddPap,
     fetchTodayPap,
+    fetchPapHistory,
     saveStreakToSheets,
     fetchGameState,
     updateGameState,
@@ -165,6 +169,14 @@ export default function App() {
         console.warn('[PAP Sync] Failed to sync from Sheets:', e);
       }
 
+      // 4. ── Fetch FULL PAP history for Scrapbook ──────────────────────────
+      try {
+        const history = await fetchPapHistory();
+        setPapHistory(history || []);
+      } catch (e) {
+        console.warn('[PAP History] Failed to fetch full history:', e);
+      }
+
       setReady(true);
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -251,38 +263,84 @@ export default function App() {
 
   // ── Task handlers ─────────────────────────────────────────────────────────
   const handleAddTask = useCallback(async (title, date) => {
-    const task = await apiAddTask(title, date);
-    setTasks(prev => [task, ...prev]);
-  }, [apiAddTask]);
+    const tempId = 'temp-' + Date.now();
+    const tempTask = { id: tempId, title, date, status: 'pending' };
+    
+    // Save previous state for rollback
+    const prevTasks = [...tasks];
+    
+    // Optimistic update
+    setTasks(prev => [tempTask, ...prev]);
+
+    try {
+      const task = await apiAddTask(title, date);
+      // Replace temp with real ID from server
+      setTasks(prev => prev.map(t => t.id === tempId ? task : t));
+    } catch (err) {
+      setTasks(prevTasks);
+      addToast('Gagal nambah tugas 😭 Coba lagi ya!', 'error');
+    }
+  }, [apiAddTask, tasks, addToast]);
 
   const handleCompleteTask = useCallback(async (id) => {
-    await apiUpdateTask(id, 'done');
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'done' } : t));
+    // Save previous state for rollback
+    const prevTasks = [...tasks];
+    const prevExp = exp;
     const prevLevel = levelInfo.level;
+
+    // Optimistic update
+    setTasks(prev => prev.map(t => t.id === id ? { ...t, status: 'done' } : t));
     addExp(10);
     showExpPopup(10, 'exp');
-    // Level up check (async — level updates after re-render)
-    setTimeout(() => {
-      const next = JSON.parse(localStorage.getItem('dlt_exp') || '0');
-      import('./utils/levels').then(({ getLevelInfo }) => {
-        const info = getLevelInfo(next);
-        if (info.level > prevLevel) {
-          fireConfetti();
-          showExpPopup(0, 'levelup', { newLevel: info.level, levelTitle: info.title });
-        }
-      });
-    }, 100);
-  }, [apiUpdateTask, addExp, levelInfo, showExpPopup]);
+
+    // Immediate UI feedback (sound + potential confetti later)
+    // Note: sounds/confetti are already triggered in TaskSection.jsx or here
+    // But since level up check depends on exp, we do it after optimistic addExp
+
+    try {
+      await apiUpdateTask(id, 'done');
+      
+      // Level up check (async — level updates after re-render)
+      setTimeout(() => {
+        const next = JSON.parse(localStorage.getItem('dlt_exp') || '0');
+        import('./utils/levels').then(({ getLevelInfo }) => {
+          const info = getLevelInfo(next);
+          if (info.level > prevLevel) {
+            fireConfetti();
+            showExpPopup(0, 'levelup', { newLevel: info.level, levelTitle: info.title });
+          }
+        });
+      }, 100);
+    } catch (err) {
+      setTasks(prevTasks);
+      setExp(prevExp);
+      addToast('Gagal update tugas 😭', 'error');
+    }
+  }, [apiUpdateTask, addExp, levelInfo, showExpPopup, tasks, exp, setExp, addToast]);
 
   const handleDeleteTask = useCallback(async (id) => {
-    await apiDeleteTask(id);
+    const prevTasks = [...tasks];
     setTasks(prev => prev.filter(t => t.id !== id));
-  }, [apiDeleteTask]);
+
+    try {
+      await apiDeleteTask(id);
+    } catch (err) {
+      setTasks(prevTasks);
+      addToast('Gagal hapus tugas 😭', 'error');
+    }
+  }, [apiDeleteTask, tasks, addToast]);
 
   // ── Expense handlers ──────────────────────────────────────────────────────
   const handleAddExpense = useCallback(async (name, amount) => {
-    const expense = await apiAddExpense(name, amount);
-    setExpenses(prev => [expense, ...prev]);
+    const tempId = 'temp-' + Date.now();
+    const tempExpense = { id: tempId, name, amount, date: new Date().toLocaleDateString('en-CA') };
+    
+    const prevExpenses = [...expenses];
+    const prevExp = exp;
+
+    // Optimistic update
+    setExpenses(prev => [tempExpense, ...prev]);
+    
     // High spending penalty (-2 EXP if over 200k)
     if (amount >= 200000) {
       addExp(-2);
@@ -292,12 +350,37 @@ export default function App() {
       addExp(5);
       showExpPopup(5, 'exp');
     }
-  }, [apiAddExpense, addExp, addToast, showExpPopup]);
+
+    try {
+      const expense = await apiAddExpense(name, amount);
+      setExpenses(prev => prev.map(e => e.id === tempId ? expense : e));
+    } catch (err) {
+      setExpenses(prevExpenses);
+      setExp(prevExp);
+      addToast('Gagal catat pengeluaran 😭', 'error');
+    }
+  }, [apiAddExpense, addExp, addToast, showExpPopup, expenses, exp, setExp]);
 
   const handleDeleteExpense = useCallback(async (id) => {
-    await apiDeleteExpense(id);
+    const prevExpenses = [...expenses];
     setExpenses(prev => prev.filter(e => e.id !== id));
-  }, [apiDeleteExpense]);
+
+    try {
+      await apiDeleteExpense(id);
+    } catch (err) {
+      setExpenses(prevExpenses);
+      addToast('Gagal hapus pengeluaran 😭', 'error');
+    }
+  }, [apiDeleteExpense, expenses, addToast]);
+
+  const handleAddPap = useCallback(async (data) => {
+    const record = await apiAddPap(data);
+    if (record) {
+      const updated = await fetchPapHistory();
+      setPapHistory(updated || []);
+    }
+    return record;
+  }, [apiAddPap, fetchPapHistory]);
 
   if (!ready) {
     return (
@@ -353,7 +436,7 @@ export default function App() {
 
         {/* ── Header Row: Greeting/EXP (L) + Date (R) ── */}
         <div className="header-row">
-          <div className="header-main card p-5 flex flex-col justify-center">
+          <div className="header-main card p-4 md:p-5 flex flex-col justify-center">
             <Header
               levelInfo={levelInfo}
               exp={exp}
@@ -365,7 +448,7 @@ export default function App() {
               onThemeChange={setTheme}
             />
           </div>
-          <div className="header-date-card card p-5">
+          <div className="header-date-card card p-4 md:p-5">
             <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>
               {new Date().toLocaleDateString('id-ID', { weekday: 'long' })}
             </p>
@@ -383,7 +466,7 @@ export default function App() {
         {/* ── Action Bar ── */}
         <div className="action-bar">
           <FilterBar active={filter} onChange={setFilter} />
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="action-bar-buttons">
             <button
               className="history-btn"
               onClick={() => setShowHistory(true)}
@@ -414,7 +497,7 @@ export default function App() {
         </div>
 
         {/* ── Desk Buddy (Hero Cat) Placement ── */}
-        <div className="flex justify-center -my-2 z-10 relative pointer-events-none">
+        <div className="flex justify-center z-10 relative pointer-events-none">
           <DeskBuddy 
             levelInfo={levelInfo} 
             tasksCompletedToday={tasks.filter(t => t.status === 'done' && t.date === new Date().toLocaleDateString('en-CA')).length}
@@ -429,7 +512,7 @@ export default function App() {
             <DailyPhotoTask
               onExp={addExp}
               onToast={addToast}
-              onAddPap={apiAddPap}
+              onAddPap={handleAddPap}
               onSaveStreak={saveStreakToSheets}
               streak={streak}
               onShowExpPopup={showExpPopup}
@@ -462,7 +545,7 @@ export default function App() {
             />
 
             {/* Optional Small Stats Card at the bottom of sidebar */}
-            <div className="card p-5">
+            <div className="card p-4 md:p-5">
               <div className="section-title mb-3">
                 <span>⚡</span>
                 <span>Status</span>
@@ -562,7 +645,11 @@ export default function App() {
       {showScrapbook && (
         <ScrapbookModal
           onClose={() => setShowScrapbook(false)}
-          papRecords={JSON.parse(localStorage.getItem('dlt_pap_history') || '[]')}
+          papRecords={papHistory}
+          onRefresh={async () => {
+            const h = await fetchPapHistory();
+            setPapHistory(h || []);
+          }}
         />
       )}
 
@@ -574,6 +661,9 @@ export default function App() {
 
       {/* ── Interactive Trails ── */}
       <InteractiveTrails />
+
+      {/* ── Interactive Emote Reaction ── */}
+      <EmoteReaction onAddExp={addExp} />
     </div>
   );
 }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 
-export default function ScrapbookModal({ onClose, papRecords = [] }) {
+export default function ScrapbookModal({ onClose, papRecords = [], onRefresh }) {
   const [animate, setAnimate] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setAnimate(true), 10);
@@ -13,34 +14,52 @@ export default function ScrapbookModal({ onClose, papRecords = [] }) {
     setTimeout(onClose, 300);
   };
 
+  const handleRefresh = async () => {
+    if (!onRefresh || refreshing) return;
+    setRefreshing(true);
+    await onRefresh();
+    setRefreshing(false);
+  };
+
   // Extract PAP records from tasks if they aren't provided separately
   // Assuming papRecords is an array of { photo_url, date, timestamp }
 
   return (
     <div className={`fixed inset-0 z-[12000] flex items-center justify-center p-4 transition-all duration-300 ${animate ? 'opacity-100' : 'opacity-0'}`}>
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={handleClose} />
-
-      <div className={`relative w-full max-w-2xl bg-white dark:bg-[#252320] rounded-[2rem] p-8 shadow-2xl overflow-hidden transition-all duration-500 transform ${animate ? 'translate-y-0 scale-100' : 'translate-y-12 scale-90'}`}>
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h2 className="text-3xl font-black italic tracking-tighter" style={{ color: 'var(--text)' }}>BUKU KENANGAN 📒</h2>
-            <p className="text-sm font-medium" style={{ color: 'var(--muted)' }}>Koleksi momen cantik Matchaa harian~</p>
+      
+      <div className={`relative w-full max-w-4xl bg-white dark:bg-[#252320] rounded-[2rem] p-5 md:p-8 shadow-2xl overflow-hidden transition-all duration-500 transform ${animate ? 'translate-y-0 scale-100' : 'translate-y-12 scale-90'}`}>
+        <div className="flex items-center justify-between mb-6 md:mb-8">
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xl md:text-3xl font-black italic tracking-tighter truncate" style={{ color: 'var(--text)' }}>BUKU KENANGAN 📒</h2>
+            <p className="text-[10px] md:text-sm font-medium truncate" style={{ color: 'var(--muted)' }}>Koleksi momen cantik Matchaa harian~</p>
           </div>
-          <button
-            onClick={handleClose}
-            className="w-12 h-12 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/5 hover:scale-110 transition-all"
-            style={{ color: 'var(--text)' }}
-          >
-            ✕
-          </button>
+          <div className="flex items-center gap-2 md:gap-3 ml-4">
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className={`w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/5 hover:scale-110 transition-all ${refreshing ? 'animate-spin' : ''}`}
+              style={{ color: 'var(--text)' }}
+              title="Refresh / Sinkronisasi Ulang"
+            >
+              🔄
+            </button>
+            <button
+              onClick={handleClose}
+              className="w-9 h-9 md:w-12 md:h-12 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/5 hover:scale-110 transition-all"
+              style={{ color: 'var(--text)' }}
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6 max-h-[60vh] md:max-h-[65vh] overflow-y-auto pr-2 custom-scrollbar">
           {papRecords.length === 0 ? (
-            <div className="col-span-full py-20 text-center text-muted">
-              <span className="text-4xl mb-4 block">📸</span>
-              <p>Belum ada foto yang tersimpan nih~</p>
-              <p className="text-xs mt-1">Ayo absen hari ini buat mulai koleksi!</p>
+            <div className="col-span-full py-12 md:py-20 text-center text-muted">
+              <span className="text-3xl md:text-4xl mb-4 block">📸</span>
+              <p className="text-sm md:text-base">Belum ada foto yang tersimpan nih~</p>
+              <p className="text-[10px] md:text-xs mt-1">Ayo absen hari ini buat mulai koleksi!</p>
             </div>
           ) : (
             papRecords.map((rc, idx) => (

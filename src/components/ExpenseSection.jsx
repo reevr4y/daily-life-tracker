@@ -1,11 +1,12 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { filterByPeriod, getTotalSpending, formatCurrency } from '../utils/insights';
 import { playPop } from '../utils/sounds';
+import ExpenseItem from './ExpenseItem';
 
 export default function ExpenseSection({ expenses, filter, onAdd, onDelete, onToast }) {
   const [name, setName]     = useState('');
   const [amount, setAmount] = useState('');
-  const [removingId, setRemovingId] = useState(null);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionsRef = useRef(null);
 
@@ -74,13 +75,16 @@ export default function ExpenseSection({ expenses, filter, onAdd, onDelete, onTo
     await onAdd(n, a);
   };
 
-  const handleDelete = async (id) => {
-    setRemovingId(id);
+  const handleDeleteInternal = useCallback(async (id) => {
     playPop();
-    setTimeout(async () => {
-      await onDelete(id);
-      setRemovingId(null);
-    }, 300);
+    await onDelete(id);
+  }, [onDelete]);
+
+  const itemConfig = {
+    initial: { opacity: 0, x: -10 },
+    animate: { opacity: 1, x: 0 },
+    exit: { opacity: 0, x: 10, scale: 0.95 },
+    transition: { duration: 0.2 }
   };
 
   return (
@@ -149,42 +153,20 @@ export default function ExpenseSection({ expenses, filter, onAdd, onDelete, onTo
       </form>
 
       {/* Expense list */}
-      <div className="space-y-1.5 mb-4 max-h-56 overflow-y-auto">
+      <div className="space-y-1.5 mb-4 max-h-56 overflow-y-auto overflow-x-hidden">
         {filtered.length === 0 && (
           <div className="empty-state">
             <div className="text-3xl mb-2">💰</div>
             <p>Belum ada pengeluaran.<br />Hemat banget nih!</p>
           </div>
         )}
-        {[...filtered].reverse().map(e => (
-          <div
-            key={e.id}
-            className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-all duration-300 ${removingId === e.id ? 'opacity-0 scale-95 translate-x-4' : ''}`}
-            style={{ background: 'var(--bg)', border: '1px solid var(--border)' }}
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="text-base flex-shrink-0">🛍️</span>
-              <span className="font-medium capitalize truncate" style={{ color: 'var(--text)' }}>
-                {e.name}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <span className="font-semibold whitespace-nowrap" style={{ color: 'var(--exp-fill, #C4A882)' }}>
-                {formatCurrency(e.amount)}
-              </span>
-              <button
-                onClick={() => handleDelete(e.id)}
-                className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                style={{ color: 'var(--muted)' }}
-                aria-label="Delete expense"
-              >
-                <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
-                  <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        ))}
+        <AnimatePresence mode="popLayout" initial={false}>
+          {[...filtered].reverse().map(e => (
+            <motion.div key={e.id} layout {...itemConfig}>
+              <ExpenseItem expense={e} onDelete={handleDeleteInternal} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
 
       {/* Total */}
