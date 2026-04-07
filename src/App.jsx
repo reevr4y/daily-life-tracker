@@ -32,6 +32,13 @@ export default function App() {
   // ── Dark mode ────────────────────────────────────────────────────────────
   const [darkMode, setDarkMode] = useDebouncedLocalStorage('dlt_dark', false, 1000);
   const [theme, setTheme]       = useDebouncedLocalStorage('dlt_theme', 'matcha', 1000);
+  
+  // ── Character ────────────────────────────────────────────────────────────
+  const [currentCharacter, setCurrentCharacter] = useDebouncedLocalStorage('dlt_character', 'cat', 1000);
+  const handleSwitchCharacter = useCallback(() => {
+    setCurrentCharacter(prev => prev === 'cat' ? 'human' : 'cat');
+  }, [setCurrentCharacter]);
+
   const [showWelcome, setShowWelcome] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
@@ -500,6 +507,8 @@ export default function App() {
         <div className="flex justify-center z-10 relative pointer-events-none">
           <DeskBuddy 
             levelInfo={levelInfo} 
+            darkMode={darkMode}
+            currentCharacter={currentCharacter}
             tasksCompletedToday={tasks.filter(t => t.status === 'done' && t.date === new Date().toLocaleDateString('en-CA')).length}
           />
         </div>
@@ -664,6 +673,20 @@ export default function App() {
 
       {/* ── Interactive Emote Reaction ── */}
       <EmoteReaction onAddExp={addExp} />
+
+      {/* ── Character Switcher (Dock) ── */}
+      <div className="action-dock-item character-dock">
+        <button
+          onClick={handleSwitchCharacter}
+          className="dock-btn"
+          aria-label="Switch Character"
+          title={`Switch to ${currentCharacter === 'cat' ? 'Human' : 'Cat'}`}
+        >
+          <span className="hover:rotate-12 transition-transform duration-300">
+            {currentCharacter === 'cat' ? '👤' : '🐱'}
+          </span>
+        </button>
+      </div>
     </div>
   );
 }

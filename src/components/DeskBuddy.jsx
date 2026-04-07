@@ -9,8 +9,38 @@ const MESSAGES = [
   "Machii kangen Matcha 😽"
 ];
 
-export default function DeskBuddy({ tasksCompletedToday = 0 }) {
-  const [state, setState] = useState('idle');
+const BASE = import.meta.env.BASE_URL || '/';
+
+const CHARACTER_CONFIG = {
+  cat: {
+    id: 'cat',
+    name: 'Machii (Cat)',
+    actions: {
+      idle: { type: 'gif', src: `${BASE}assets/machii_diem.gif`, size: 100 },
+      walk: { type: 'gif', src: `${BASE}assets/machii_jalan.gif`, size: 100 },
+      interact: { 
+        type: 'sprite', 
+        src: `${BASE}assets/machii_happy.png`, 
+        sizeY: 119, 
+        sizeX: 146, 
+        frames: 4, 
+        duration: '0.6s' 
+      }
+    }
+  },
+  human: {
+    id: 'human',
+    name: 'Machii (Human)',
+    actions: {
+      idle: { type: 'gif', src: `${BASE}assets/machii_game.gif`, size: 100 },
+      walk: { type: 'gif', src: `${BASE}assets/machii_gerak.gif`, size: 100 },
+      interact: { type: 'gif', src: `${BASE}assets/machii_hai.gif`, size: 100 }
+    }
+  }
+};
+
+export default function DeskBuddy({ tasksCompletedToday = 0, darkMode = false, currentCharacter = 'cat' }) {
+  const [currentAction, setCurrentAction] = useState('idle');
   const [activeMessage, setActiveMessage] = useState(null);
   
   // Pacing State
@@ -23,9 +53,10 @@ export default function DeskBuddy({ tasksCompletedToday = 0 }) {
   const lastMsgIdxRef = useRef(-1);
   const messageTimeoutRef = useRef(null);
 
+
   useEffect(() => {
     if (tasksCompletedToday > 0) {
-      triggerHappy();
+      triggerInteract();
     }
   }, [tasksCompletedToday]);
 
@@ -51,8 +82,8 @@ export default function DeskBuddy({ tasksCompletedToday = 0 }) {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  const triggerHappy = useCallback((isClick = false) => {
-    setState('happy');
+  const triggerInteract = useCallback((isClick = false) => {
+    setCurrentAction('interact');
     playMeow();
 
     if (isClick) {
@@ -69,60 +100,66 @@ export default function DeskBuddy({ tasksCompletedToday = 0 }) {
       }, 3000);
     }
 
+    // Return to idle (or walk) after animation
+    const config = CHARACTER_CONFIG[currentCharacter].actions.interact;
+    const duration = config.type === 'sprite' ? 600 : 1200; // Adjust for GIF or Sprite
+    
     setTimeout(() => {
-        if(!isWalkingRef.current) setState('idle');
-    }, 600);
-  }, []);
+        if(!isWalkingRef.current) setCurrentAction('idle');
+        else setCurrentAction('walk');
+    }, duration);
+  }, [currentCharacter]);
 
   // Occasional pacing back and forth
   useEffect(() => {
     const paceTimer = setInterval(() => {
-      if (Math.random() > 0.6 && state === 'idle' && !isWalkingRef.current) {
+      if (Math.random() > 0.6 && currentAction === 'idle' && !isWalkingRef.current) {
         startPacing();
       }
-    }, 12000); // Check more often
+    }, 12000);
 
     return () => clearInterval(paceTimer);
-  }, [state]);
+  }, [currentAction]);
 
   const startPacing = () => {
     if (isWalkingRef.current) return;
     isWalkingRef.current = true;
     setLookAt({ x: 0, y: 0 });
     
-    // 1. Determine direction
     const walkRight = Math.random() > 0.5;
-    // Responsive walk distance
     const dist = window.innerWidth < 640 ? 60 : 350; 
     const targetX = walkRight ? dist : -dist;
     
-    // 2. Set direction and start walk animation
     setDirection(walkRight ? 1 : -1);
-    setState('walk');
+    setCurrentAction('walk');
     
-    // 3. Move after a frame
     setTimeout(() => {
         setOffsetX(targetX);
     }, 50);
 
-    // 4. After walk forward (5s) -> Flip and walk back
     setTimeout(() => {
-      // Done walking out -> Flip instantly
       setDirection(walkRight ? -1 : 1);
       
-      // Wait for flip, then move back
       setTimeout(() => {
           setOffsetX(0);
           
-          // 5. After walk back (5s) -> Go back to idle
           setTimeout(() => {
             isWalkingRef.current = false;
-            setState('idle');
-            setDirection(1); // Default face right
+            setCurrentAction('idle');
+            setDirection(1); 
           }, 5000);
       }, 100); 
-    }, 6000); // Wait 1s extra at destination
+    }, 6000); 
   };
+
+
+  const currentConfig = CHARACTER_CONFIG[currentCharacter];
+  let actionConfig = currentConfig.actions[currentAction];
+
+  // Specific override for cat idle in dark mode (sleeping)
+  if (currentCharacter === 'cat' && currentAction === 'idle' && darkMode) {
+    actionConfig = { ...actionConfig, src: `${BASE}assets/machii_tidur.gif` };
+  }
 
   return (
     <div 
@@ -130,16 +167,16 @@ export default function DeskBuddy({ tasksCompletedToday = 0 }) {
       className="flex flex-col items-center pointer-events-auto relative z-[100] mt-4 mb-2 md:mt-8 md:mb-4 transition-all duration-300 scale-90 md:scale-100"
     >
       
-      {/* --- Translate Container (The Walk Speed) --- */}
+      {/* --- Translate Container --- */}
       <div 
          className="relative transition-transform"
          style={{ 
              transform: `translateX(${offsetX}px)`,
-             transitionDuration: state === 'walk' ? '5s' : '0.4s',
+             transitionDuration: currentAction === 'walk' ? '5s' : '0.4s',
              transitionTimingFunction: 'linear'
          }}
       >
-          {/* --- Flip Container (Invisible Rotation) --- */}
+          {/* --- Flip Container --- */}
           <div style={{ transform: `scaleX(${direction})` }}>
               
               {/* ── Chat Bubble ── */}
@@ -154,17 +191,32 @@ export default function DeskBuddy({ tasksCompletedToday = 0 }) {
                 className="machii-name-tag absolute -top-4 flex justify-center w-full z-10 pointer-events-none transition-transform duration-200" 
                 style={{ transform: `scaleX(${direction}) translate(${lookAt.x * 0.5}px, ${lookAt.y * 0.5}px)` }}
               >
-                <span className="machii-name-text">Machii 🐱</span>
+                <span className="machii-name-text">{currentConfig.name}</span>
               </div>
 
-              {/* ── Cat Sprite ── */}
+              {/* ── Dynamic Sprite ── */}
               <div 
-                className={`machii-sprite ${state} filter drop-shadow-md cursor-pointer transition-transform duration-200`} 
-                style={{ transform: `translate(${lookAt.x}px, ${lookAt.y}px)` }}
-                onClick={() => triggerHappy(true)}
+                className={`machii-sprite dynamic filter drop-shadow-md cursor-pointer transition-all duration-300 ${currentAction === 'interact' ? 'scale-110' : ''}`} 
+                style={{ 
+                    transform: `translate(${lookAt.x}px, ${lookAt.y}px)`,
+                    backgroundImage: `url(${actionConfig.src})`,
+                    width: actionConfig.sizeX || actionConfig.size || 100,
+                    height: actionConfig.sizeY || actionConfig.size || 100,
+                    backgroundSize: actionConfig.type === 'sprite' ? `${(actionConfig.sizeX || 100) * actionConfig.frames}px ${actionConfig.sizeY || 100}px` : 'contain',
+                    backgroundPosition: 'center bottom',
+                    animation: actionConfig.type === 'sprite' ? `sprite${currentAction} ${actionConfig.duration} steps(${actionConfig.frames}) infinite` : 'none'
+                }}
+                onClick={() => triggerInteract(true)}
               />
           </div>
       </div>
+      
+      <style>{`
+        @keyframes spriteinteract {
+          from { background-position-x: 0; }
+          to { background-position-x: -${(actionConfig.sizeX || 100) * (actionConfig.frames || 1)}px; }
+        }
+      `}</style>
     </div>
   );
 }
