@@ -3085,7 +3085,7 @@ function useCurrentDate() {
 		}, 6e4);
 		return () => clearInterval(interval);
 	}, []);
-	return useMemo(() => ({
+	return (0, import_react.useMemo)(() => ({
 		weekday: date.toLocaleDateString("id-ID", { weekday: "long" }),
 		day: date.getDate(),
 		month: date.toLocaleDateString("id-ID", { month: "long" }),
@@ -4751,7 +4751,7 @@ function App() {
 			setTimeout(() => {
 				const next = JSON.parse(localStorage.getItem("dlt_exp") || "0");
 				__vitePreload(async () => {
-					const { getLevelInfo } = await import("./levels-6dRUoXin.js");
+					const { getLevelInfo } = await import("./levels-BT3FIsMh.js");
 					return { getLevelInfo };
 				}, []).then(({ getLevelInfo }) => {
 					const info = getLevelInfo(next);
