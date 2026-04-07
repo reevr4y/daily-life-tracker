@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { playMeow } from '../utils/sounds';
+import { playMeow, playMachiiSuara } from '../utils/sounds';
 
 const MESSAGES = [
   "Hallo Matchaaawww 😆💖",
@@ -10,6 +10,20 @@ const MESSAGES = [
 ];
 
 const BASE = import.meta.env.BASE_URL || '/';
+
+/**
+ * Throttle helper function
+ * Limits function calls to once per specified delay
+ */
+function throttle(func, delay) {
+  let lastCall = 0;
+  return function(...args) {
+    const now = Date.now();
+    if (now - lastCall < delay) return;
+    lastCall = now;
+    func(...args);
+  };
+}
 
 const CHARACTER_CONFIG = {
   cat: {
@@ -43,6 +57,9 @@ export default function DeskBuddy({ tasksCompletedToday = 0, darkMode = false, c
   const isWalkingRef = useRef(false);
   const containerRef = useRef(null);
 
+  // RAF reference for cleanup
+  const rafRef = useRef(null);
+  
   const lastMsgIdxRef = useRef(-1);
   const messageTimeoutRef = useRef(null);
 
@@ -53,31 +70,65 @@ export default function DeskBuddy({ tasksCompletedToday = 0, darkMode = false, c
     }
   }, [tasksCompletedToday]);
 
-  // Eye/Face tracking logic
+  // ✅ OPTIMIZED: Mouse tracking with throttle + RAF
   useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (!containerRef.current || isWalkingRef.current) return;
+    let mouseX = 0;
+    let mouseY = 0;
+    
+    // Throttled mouse position capture (max 30fps)
+    const handleMouseMove = throttle((e) => {
+      if (isWalkingRef.current) return;
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    }, 33); // ~30fps throttle
+    
+    // Smooth eye updates via RAF
+    const updateEyes = () => {
+      if (!containerRef.current || isWalkingRef.current) {
+        rafRef.current = requestAnimationFrame(updateEyes);
+        return;
+      }
       
       const rect = containerRef.current.getBoundingClientRect();
       const catX = rect.left + rect.width / 2;
       const catY = rect.top + rect.height / 2;
       
-      const angleX = (e.clientX - catX) / 100;
-      const angleY = (e.clientY - catY) / 100;
+      const angleX = (mouseX - catX) / 100;
+      const angleY = (mouseY - catY) / 100;
       
-      setLookAt({
-        x: Math.max(-8, Math.min(8, angleX * 5)),
-        y: Math.max(-5, Math.min(5, angleY * 5))
+      const newX = Math.max(-8, Math.min(8, angleX * 5));
+      const newY = Math.max(-5, Math.min(5, angleY * 5));
+      
+      // ✅ Only update if significant change (reduce setState calls)
+      setLookAt(prev => {
+        if (Math.abs(prev.x - newX) > 0.5 || Math.abs(prev.y - newY) > 0.5) {
+          return { x: newX, y: newY };
+        }
+        return prev;
       });
+      
+      rafRef.current = requestAnimationFrame(updateEyes);
     };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    
+    // ✅ Passive listener for better scroll performance
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    rafRef.current = requestAnimationFrame(updateEyes);
+    
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
   }, []);
 
   const triggerInteract = useCallback((isClick = false) => {
     setCurrentAction('interact');
-    playMeow();
+    if (currentCharacter === 'cat') {
+      playMeow();
+    } else {
+      playMachiiSuara();
+    }
 
     if (isClick) {
       let nextIdx = Math.floor(Math.random() * MESSAGES.length);

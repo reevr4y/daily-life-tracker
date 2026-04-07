@@ -1,20 +1,31 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo, memo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { filterByPeriod } from '../utils/insights';
 import { fireSmallConfetti } from '../utils/confetti';
 import { playPop, playChime } from '../utils/sounds';
 import TaskItem from './TaskItem';
 
-export default function TaskSection({ tasks, filter, onAdd, onComplete, onDelete, onToast }) {
+export default memo(function TaskSection({ tasks, filter, onAdd, onComplete, onDelete, onToast }) {
   const [input, setInput] = useState('');
   const inputRef = useRef(null);
 
-  const today = new Date().toLocaleDateString('en-CA');
-  const filtered = filterByPeriod(tasks, filter);
+  // Memoize today calculation
+  const today = useMemo(() => new Date().toLocaleDateString('en-CA'), []);
   
-  const pending = filtered.filter(t => t.status === 'pending' && t.date === today);
-  const missed  = filtered.filter(t => t.status === 'missed' || (t.status === 'pending' && t.date < today));
-  const done    = filtered.filter(t => t.status === 'done' && t.date === today);
+  // Memoize filtered tasks
+  const filtered = useMemo(() => 
+    filterByPeriod(tasks, filter), 
+    [tasks, filter]
+  );
+  
+  // Memoize categorized tasks
+  const categorized = useMemo(() => ({
+    pending: filtered.filter(t => t.status === 'pending' && t.date === today),
+    missed: filtered.filter(t => t.status === 'missed' || (t.status === 'pending' && t.date < today)),
+    done: filtered.filter(t => t.status === 'done' && t.date === today)
+  }), [filtered, today]);
+  
+  const { pending, missed, done } = categorized;
 
   const handleAdd = async (e) => {
     e.preventDefault();
@@ -151,4 +162,4 @@ export default function TaskSection({ tasks, filter, onAdd, onComplete, onDelete
       </div>
     </div>
   );
-}
+});

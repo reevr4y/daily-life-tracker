@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, memo } from 'react';
 import { playPop } from '../utils/sounds';
 
-export default function SettingsModal({ settings, setSettings, onClose, onToast }) {
+export default memo(function SettingsModal({ settings, setSettings, onClose, onToast }) {
   const [localSettings, setLocalSettings] = useState(settings);
   const [animate, setAnimate] = useState(false);
 
@@ -96,9 +96,10 @@ export default function SettingsModal({ settings, setSettings, onClose, onToast 
                 setLocalSettings({...localSettings, monthly: Math.max(0, v)});
               }}
               className="input-field"
-              placeholder="2000000"
             />
           </div>
+
+
         </div>
 
         <div className="mt-8 flex gap-3">
@@ -125,4 +126,4 @@ export default function SettingsModal({ settings, setSettings, onClose, onToast 
       </div>
     </div>
   );
-}
+});

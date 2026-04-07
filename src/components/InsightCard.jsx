@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import {
   filterByPeriod,
   getTotalSpending,
@@ -11,17 +12,23 @@ import {
 const periodLabel = { daily: 'Hari Ini', weekly: '7 Hari', monthly: '30 Hari' };
 
 export default function InsightCard({ tasks, expenses, filter, settings }) {
-  const filteredExpenses = filterByPeriod(expenses, filter);
-  const filteredTasks    = filterByPeriod(tasks, filter);
+  const filteredExpenses = useMemo(() => filterByPeriod(expenses, filter), [expenses, filter]);
+  const filteredTasks    = useMemo(() => filterByPeriod(tasks, filter), [tasks, filter]);
 
-  const totalSpending    = getTotalSpending(filteredExpenses);
-  const completedCount   = filteredTasks.filter(t => t.status === 'done').length;
-  const totalTasks       = filteredTasks.length;
-  const mostExpense      = getMostFrequentExpense(filteredExpenses);
-  const bestDay          = getMostProductiveDay(tasks); // all time for best day
+  const totalSpending    = useMemo(() => getTotalSpending(filteredExpenses), [filteredExpenses]);
+  
+  const tasksMetrics = useMemo(() => ({
+    completedCount: filteredTasks.filter(t => t.status === 'done').length,
+    totalTasks: filteredTasks.length
+  }), [filteredTasks]);
+  
+  const { completedCount, totalTasks } = tasksMetrics;
 
-  const spendMsg  = getSpendingMessage(totalSpending, filter, settings);
-  const prodMsg   = getProductivityMessage(completedCount);
+  const mostExpense      = useMemo(() => getMostFrequentExpense(filteredExpenses), [filteredExpenses]);
+  const bestDay          = useMemo(() => getMostProductiveDay(tasks), [tasks]); // all time for best day
+
+  const spendMsg  = useMemo(() => getSpendingMessage(totalSpending, filter, settings), [totalSpending, filter, settings]);
+  const prodMsg   = useMemo(() => getProductivityMessage(completedCount), [completedCount]);
 
   const msgColor = {
     good:    '#7BAE7F',

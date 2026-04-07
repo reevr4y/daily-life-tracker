@@ -4,7 +4,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ─── CSS Variables ─── */
+/* â”€â”€â”€ CSS Variables â”€â”€â”€ */
 :root {
   /* Matcha (Default) */
   --bg:         #F8F5F0;
@@ -24,7 +24,7 @@
   --glow-gold:  rgba(196, 168, 130, 0.25);
 }
 
-/* 🍓 Strawberry Theme */
+/* ðŸ“ Strawberry Theme */
 [data-theme='strawberry'] {
   --bg:         #FFF5F7;
   --accent:     #FFD4DB;
@@ -38,7 +38,7 @@
   --glow-gold:  rgba(255, 116, 141, 0.25);
 }
 
-/* 🍑 Peach Theme */
+/* ðŸ‘ Peach Theme */
 [data-theme='peach'] {
   --bg:         #FFF9F2;
   --accent:     #FFE5CC;
@@ -50,7 +50,7 @@
   --border:     #FFEEE0;
 }
 
-/* 🍇 Lavender Theme */
+/* ðŸ‡ Lavender Theme */
 [data-theme='lavender'] {
   --bg:         #F9F5FF;
   --accent:     #E8DDFF;
@@ -107,7 +107,7 @@
   --glow-gold:  rgba(120, 88, 187, 0.25);
 }
 
-/* ─── Base ─── */
+/* â”€â”€â”€ Base â”€â”€â”€ */
 * { box-sizing: border-box; }
 
 html { scroll-behavior: smooth; }
@@ -129,7 +129,7 @@ html, body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   
-  /* 👋 Custom Machii Cursor - NUCLEAR FIX (Base64 + Universal Important) */
+  /* ðŸ‘‹ Custom Machii Cursor - NUCLEAR FIX (Base64 + Universal Important) */
   cursor: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cGF0aCBkPSJNMTYgMjZDMjEuNSAyNiAyNiAyMS41IDI2IDE2QzI2IDEwLjUgMjEuNSA2IDE2IDZDMTAuNSA2IDYgMTAuNSA2IDE2QzYgMjEuNSAxMC41IDI2IDE2IDI2WiIgZmlsbD0iI0ZGQjdDNSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgPGNpcmNsZSBjeD0iMTAiIGN5PSIxMCIgcj0iMyIgZmlsbD0iI0ZGQjdDNSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KICA8Y2lyY2xlIGN4PSIxNiIgY3k9IjciIHI9IjMiIGZpbGw9IiNGRkI3QzUiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMS41Ii8+CiAgPGNpcmNsZSBjeD0iMjIiIGN5PSIxMCIgcj0iMyIgZmlsbD0iI0ZGQjdDNSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIxLjUiLz4KPC9zdmc+") 0 0, auto !important;
 }
 
@@ -141,7 +141,7 @@ html, body {
 /* Ensure interactive elements also use the custom cursor or a pointer version if available */
 /* Interactive defaults override already handled above by universal selector */
 
-/* ─── Card ─── */
+/* â”€â”€â”€ Card â”€â”€â”€ */
 .card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -156,7 +156,7 @@ html, body {
   transform: translateY(-3px);
 }
 
-/* ─── EXP Bar ─── */
+/* â”€â”€â”€ EXP Bar â”€â”€â”€ */
 .exp-bar-track {
   background: var(--accent);
   border-radius: 99px;
@@ -180,7 +180,7 @@ html, body {
   50% { background-position: 100% 50%; }
 }
 
-/* ─── Task item ─── */
+/* â”€â”€â”€ Task item â”€â”€â”€ */
 .task-item {
   display: flex;
   align-items: center;
@@ -212,7 +212,7 @@ html, body {
   animation: slideOutRight 0.3s ease-in forwards;
 }
 
-/* ─── Custom checkbox ─── */
+/* â”€â”€â”€ Custom checkbox â”€â”€â”€ */
 .custom-checkbox {
   width: 24px;
   height: 24px;
@@ -248,7 +248,7 @@ html, body {
   100% { transform: scale(1); }
 }
 
-/* ─── Strike-through animation ─── */
+/* â”€â”€â”€ Strike-through animation â”€â”€â”€ */
 .task-text {
   position: relative;
   transition: opacity 0.3s ease;
@@ -268,7 +268,7 @@ html, body {
 
 .task-text.struck::after { width: 100%; }
 
-/* ─── Input ─── */
+/* â”€â”€â”€ Input â”€â”€â”€ */
 .input-field {
   width: 100%;
   padding: 0.7rem 1rem;
@@ -290,7 +290,7 @@ html, body {
 
 .input-field::placeholder { color: var(--muted); }
 
-/* ─── Button ─── */
+/* â”€â”€â”€ Button â”€â”€â”€ */
 .btn-primary {
   padding: 0.65rem 1.25rem;
   background: linear-gradient(135deg, var(--accent-2), var(--accent));
@@ -334,7 +334,7 @@ html, body {
   transition: transform 0.1s ease;
 }
 
-/* ─── Filter pill ─── */
+/* â”€â”€â”€ Filter pill â”€â”€â”€ */
 .filter-pill {
   padding: 0.4rem 1.1rem;
   border-radius: 99px;
@@ -356,7 +356,7 @@ html, body {
 
 .dark .filter-pill.active { color: var(--text); }
 
-/* ─── Toast ─── */
+/* â”€â”€â”€ Toast â”€â”€â”€ */
 .toast-container {
   position: fixed;
   top: 1rem;
@@ -398,7 +398,7 @@ html, body {
   100% { opacity: 0; transform: translateX(80%) scale(0.8); }
 }
 
-/* ─── Streak fire ─── */
+/* â”€â”€â”€ Streak fire â”€â”€â”€ */
 .streak-badge {
   display: inline-flex;
   align-items: center;
@@ -426,7 +426,7 @@ html, body {
   75%       { transform: scale(1.1) rotate(3deg); filter: brightness(1.15); }
 }
 
-/* ─── Level badge ─── */
+/* â”€â”€â”€ Level badge â”€â”€â”€ */
 .level-badge {
   display: inline-flex;
   align-items: center;
@@ -440,7 +440,7 @@ html, body {
   border: 1.5px solid var(--accent-2);
 }
 
-/* ─── Section title ─── */
+/* â”€â”€â”€ Section title â”€â”€â”€ */
 .section-title {
   font-size: 1rem;
   font-weight: 700;
@@ -451,7 +451,7 @@ html, body {
   margin-bottom: 1rem;
 }
 
-/* ─── Insight item ─── */
+/* â”€â”€â”€ Insight item â”€â”€â”€ */
 .insight-row {
   display: flex;
   justify-content: space-between;
@@ -469,12 +469,12 @@ html, body {
 
 .insight-row:last-child { border-bottom: none; }
 
-/* ─── Scrollbar ─── */
+/* â”€â”€â”€ Scrollbar â”€â”€â”€ */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-/* ─── Dark mode toggle ─── */
+/* â”€â”€â”€ Dark mode toggle â”€â”€â”€ */
 .dark-toggle {
   width: 44px;
   height: 24px;
@@ -504,7 +504,7 @@ html, body {
   background: #C4A882;
 }
 
-/* ─── Empty state ─── */
+/* â”€â”€â”€ Empty state â”€â”€â”€ */
 .empty-state {
   text-align: center;
   padding: 2rem 1rem;
@@ -512,7 +512,7 @@ html, body {
   font-size: 0.875rem;
 }
 
-/* ─── Welcome Card ─── */
+/* â”€â”€â”€ Welcome Card â”€â”€â”€ */
 .welcome-backdrop {
   position: fixed;
   inset: 0;
@@ -729,7 +729,7 @@ html, body {
   font-weight: 700;
 }
 
-/* ─── Footer credit ─── */
+/* â”€â”€â”€ Footer credit â”€â”€â”€ */
 .footer-credit {
   text-align: center;
   font-size: 0.75rem;
@@ -765,7 +765,7 @@ html, body {
   background-clip: text;
 }
 
-/* ─── Responsive ─── */
+/* â”€â”€â”€ Responsive â”€â”€â”€ */
 @media (max-width: 640px) {
   .toast-container {
     top: 0.75rem;
@@ -805,7 +805,7 @@ html, body {
   }
 }
 
-/* ─── EXP Popup ─── */
+/* â”€â”€â”€ EXP Popup â”€â”€â”€ */
 .exp-popup-container {
   position: fixed;
   inset: 0;
@@ -876,7 +876,7 @@ html, body {
   50% { box-shadow: 0 0 80px rgba(255, 215, 0, 0.5), 0 0 160px rgba(255, 165, 0, 0.25), 0 20px 60px rgba(0, 0, 0, 0.25); }
 }
 
-/* ─── Fire particles ─── */
+/* â”€â”€â”€ Fire particles â”€â”€â”€ */
 .fire-container {
   position: absolute;
   inset: 0;
@@ -911,7 +911,7 @@ html, body {
   }
 }
 
-/* ─── Floating emojis ─── */
+/* â”€â”€â”€ Floating emojis â”€â”€â”€ */
 .floating-emojis-container {
   position: absolute;
   inset: 0;
@@ -945,7 +945,7 @@ html, body {
   }
 }
 
-/* ─── Popup icon ─── */
+/* â”€â”€â”€ Popup icon â”€â”€â”€ */
 .exp-popup-icon {
   font-size: 3rem;
   margin-bottom: 0.5rem;
@@ -977,7 +977,7 @@ html, body {
   100% { transform: scale(1) rotate(0); opacity: 1; }
 }
 
-/* ─── Popup title ─── */
+/* â”€â”€â”€ Popup title â”€â”€â”€ */
 .exp-popup-title {
   font-size: 2.2rem;
   font-weight: 800;
@@ -1015,7 +1015,7 @@ html, body {
   50% { background-position: 100% 50%; }
 }
 
-/* ─── Level title badge ─── */
+/* â”€â”€â”€ Level title badge â”€â”€â”€ */
 .exp-popup-level-title {
   font-size: 0.85rem;
   font-weight: 600;
@@ -1036,13 +1036,13 @@ html, body {
   100% { opacity: 1; }
 }
 
-/* ─── Card enter animation ─── */
+/* â”€â”€â”€ Card enter animation â”€â”€â”€ */
 @keyframes cardEnter {
   0%   { opacity: 0; transform: translateY(16px) scale(0.97); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* ─── Skeleton loading ─── */
+/* â”€â”€â”€ Skeleton loading â”€â”€â”€ */
 .skeleton {
   background: linear-gradient(
     90deg,
@@ -1084,7 +1084,7 @@ html, body {
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
-/* ─── Stagger bar animation for chart ─── */
+/* â”€â”€â”€ Stagger bar animation for chart â”€â”€â”€ */
 .chart-bar-enter {
   animation: barGrow 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   transform-origin: bottom;
@@ -1096,7 +1096,7 @@ html, body {
   100% { transform: scaleY(1); }
 }
 
-/* ─── Stagger delay helpers ─── */
+/* â”€â”€â”€ Stagger delay helpers â”€â”€â”€ */
 .delay-0  { animation-delay: 0ms !important; }
 .delay-50 { animation-delay: 50ms !important; }
 
@@ -1104,7 +1104,7 @@ html, body {
   color: #FFD700;
 }
 
-/* ─── Popup quote ─── */
+/* â”€â”€â”€ Popup quote â”€â”€â”€ */
 .exp-popup-quote {
   font-size: 0.9rem;
   color: var(--text);
@@ -1116,7 +1116,7 @@ html, body {
   animation: fadeInUp 0.5s ease-out 0.2s both;
 }
 
-/* ─── Level up progress bar ─── */
+/* â”€â”€â”€ Level up progress bar â”€â”€â”€ */
 .exp-popup-progress {
   margin-top: 1rem;
   height: 6px;
@@ -1140,7 +1140,7 @@ html, body {
   100% { width: 100%; }
 }
 
-/* ─── History Modal ─── */
+/* â”€â”€â”€ History Modal â”€â”€â”€ */
 .history-backdrop {
   position: fixed;
   inset: 0;
@@ -1463,7 +1463,7 @@ html, body {
 .chip-red     { background: rgba(217,128,128,0.12); color: var(--danger);  border: 1px solid rgba(217,128,128,0.3); }
 .chip-neutral { background: var(--accent);          color: var(--text);    border: 1px solid var(--accent-2); }
 
-/* ─── History button in header ─── */
+/* â”€â”€â”€ History button in header â”€â”€â”€ */
 .history-btn {
   display: inline-flex;
   align-items: center;
@@ -1490,7 +1490,7 @@ html, body {
   transform: scale(0.95);
 }
 
-/* ─── Responsive for history modal ─── */
+/* â”€â”€â”€ Responsive for history modal â”€â”€â”€ */
 @media (min-width: 640px) {
   .history-modal {
     max-width: 680px;
@@ -1509,11 +1509,11 @@ html, body {
 }
 
 
-/* ═══════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    FULL DESKTOP LAYOUT SYSTEM
-   ═══════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
-/* ─── App container ─── */
+/* â”€â”€â”€ App container â”€â”€â”€ */
 .app-container {
   width: 100%;
   max-width: 1400px;
@@ -1529,7 +1529,7 @@ html, body {
   }
 }
 
-/* ─── Header row ─── */
+/* â”€â”€â”€ Header row â”€â”€â”€ */
 .header-row {
   display: flex;
   flex-direction: column; /* Stack on mobile */
@@ -1591,7 +1591,7 @@ html, body {
   }
 }
 
-/* ─── Action bar ─── */
+/* â”€â”€â”€ Action bar â”€â”€â”€ */
 .action-bar {
   display: flex;
   flex-direction: column; /* Buttons split onto multiple rows or wraps on mobile */
@@ -1625,7 +1625,7 @@ html, body {
   }
 }
 
-/* ─── Main Grid Layout ─── */
+/* â”€â”€â”€ Main Grid Layout â”€â”€â”€ */
 .main-grid {
   display: flex;
   flex-direction: column; /* Stack by default on mobile */
@@ -1657,7 +1657,7 @@ html, body {
   }
 }
 
-/* ─── Insight Grid ─── */
+/* â”€â”€â”€ Insight Grid â”€â”€â”€ */
 .insight-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -1695,7 +1695,7 @@ html, body {
   box-shadow: 0 4px 12px var(--shadow);
 }
 
-/* ─── Decorative blob shapes ─── */
+/* â”€â”€â”€ Decorative blob shapes â”€â”€â”€ */
 .deco-blob {
   position: fixed;
   border-radius: 50%;
@@ -1750,7 +1750,7 @@ html, body {
   }
 }
 
-/* ─── Floating Decorations ─── */
+/* â”€â”€â”€ Floating Decorations â”€â”€â”€ */
 .floating-decoration {
   position: fixed;
   pointer-events: none;
@@ -1789,7 +1789,7 @@ html, body {
   transition: all 0.3s ease;
 }
 
-/* ─── Task Item States ─── */
+/* â”€â”€â”€ Task Item States â”€â”€â”€ */
 .task-item.missed {
   opacity: 0.65;
   filter: grayscale(0.4);
@@ -1813,7 +1813,7 @@ html, body {
   border-color: rgba(248, 113, 113, 0.2) !important;
 }
 
-/* ─── Custom Animations ─── */
+/* â”€â”€â”€ Custom Animations â”€â”€â”€ */
 @keyframes bounce-slow {
   0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8, 0, 1, 1); }
   50% { transform: translateY(0); animation-timing-function: cubic-bezier(0, 0, 0.2, 1); }
@@ -1836,7 +1836,7 @@ html, body {
   transition: background-color 0.5s ease, color 0.5s ease;
 }
 
-/* ─── Custom Suggestions Dropdown ─── */
+/* â”€â”€â”€ Custom Suggestions Dropdown â”€â”€â”€ */
 .suggestions-container {
   position: relative;
   width: 100%;
@@ -2110,7 +2110,7 @@ html, body {
   animation: trail-float 1.5s forwards ease-out;
 }
 
-/* ─── Background Effects (Dark Mode) ─── */
+/* â”€â”€â”€ Background Effects (Dark Mode) â”€â”€â”€ */
 .sky-effects-container {
   position: fixed;
   inset: 0;
@@ -2163,8 +2163,8 @@ html, body {
   100% { transform: translateX(-400px) translateY(400px) rotate(-45deg) scaleX(1); opacity: 0; }
 }
 
-/* ─── Interactive Emote Reaction ─── */
-/* ─── Floating Action Dock System ─── */
+/* â”€â”€â”€ Interactive Emote Reaction â”€â”€â”€ */
+/* â”€â”€â”€ Floating Action Dock System â”€â”€â”€ */
 .action-dock-item {
   position: fixed;
   z-index: 100;
@@ -2221,11 +2221,13 @@ html, body {
 .emote-dock {
   bottom: 8.5rem;
   left: 1.5rem;
+  z-index: 150; /* Higher than character-dock to let emotes float on top */
 }
 
 .character-dock {
   bottom: 14.75rem;
   left: 1.5rem;
+  z-index: 100;
 }
 
 .character-dock .dock-btn {
@@ -2280,6 +2282,7 @@ html, body {
   left: 50%;
   width: 0;
   height: 0;
+  z-index: 200; /* Float over character switcher and other dock items */
   pointer-events: none; /* Let clicks pass through */
 }
 
@@ -2315,5 +2318,364 @@ html, body {
   100% {
     transform: translate(calc(-50% + var(--drift-x, 0) * 2), -150px) scale(1) rotate(calc(var(--angle, 0) * -1deg));
     opacity: 0;
+  }
+}
+/**
+ * PERFORMANCE-OPTIMIZED ANIMATIONS
+ * 
+ * Key optimizations:
+ * 1. GPU acceleration via translate3d() instead of translate()
+ * 2. will-change property untuk hint browser
+ * 3. Reduced blur intensity (100px â    80px)
+ * 4. Slower animations untuk reduce CPU usage
+ * 5. Smoother easing functions
+ * 
+ * Add this to your index.css or create a separate file
+ */
+
+/* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
+   OPTIMIZED AURORA ANIMATIONS
+   â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â"  */
+
+.aurora-blob {
+  position: absolute;
+  width: 70vw;
+  height: 50vh;
+  border-radius: 50%;
+  
+  /* âS&  Reduced blur for better performance (100px â    80px) */
+  filter: blur(80px);
+  opacity: 0.35;
+  mix-blend-mode: plus-lighter;
+  
+  /* âS&  GPU acceleration hints */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  
+  /* âS&  Smoother, slower animation */
+  animation: aurora-float-optimized 30s cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+}
+
+@keyframes aurora-float-optimized {
+  /* âS&  Use translate3d for GPU acceleration */
+  0% { 
+    transform: translate3d(-40vw, -20vh, 0) scale(1) rotate(0deg);
+    opacity: 0.2;
+  }
+  50% { 
+    transform: translate3d(40vw, 20vh, 0) scale(1.6) rotate(45deg);
+    opacity: 0.4;
+  }
+  100% { 
+    transform: translate3d(-20vw, 30vh, 0) scale(1.2) rotate(90deg);
+    opacity: 0.25;
+  }
+}
+
+/* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
+   OPTIMIZED SHOOTING STARS
+   â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â"  */
+
+.shooting-star {
+  position: absolute;
+  background: linear-gradient(90deg, rgba(255,255,255,1), rgba(255,255,255,0));
+  height: 2px;
+  
+  /* âS&  Reduced drop-shadow intensity (5px â    3px) */
+  filter: drop-shadow(0 0 3px white);
+  opacity: 0;
+  
+  /* âS&  GPU acceleration */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+@keyframes shooting-star-anim-optimized {
+  /* âS&  Use translate3d for GPU layer */
+  0% { 
+    transform: translate3d(0, 0, 0) rotate(-45deg) scaleX(0); 
+    opacity: 0; 
+  }
+  10% { 
+    transform: translate3d(0, 0, 0) rotate(-45deg) scaleX(1); 
+    opacity: 1; 
+  }
+  25% { 
+    transform: translate3d(-400px, 400px, 0) rotate(-45deg) scaleX(1); 
+    opacity: 0; 
+  }
+  100% { 
+    transform: translate3d(-400px, 400px, 0) rotate(-45deg) scaleX(1); 
+    opacity: 0; 
+  }
+}
+
+/* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
+   OPTIMIZED FLOATING DECORATIONS
+   â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â"  */
+
+.floating-decoration {
+  position: absolute;
+  font-size: 2rem;
+  opacity: 0.4;
+  pointer-events: none;
+  
+  /* âS&  GPU acceleration */
+  will-change: transform;
+  transform: translateZ(0);
+  
+  /* âS&  Slower animations reduce CPU usage */
+  animation: float-optimized 8s ease-in-out infinite;
+}
+
+.decoration-1 { top: 5%; left: 10%; animation-delay: 0s; }
+.decoration-2 { top: 15%; right: 15%; animation-delay: -2s; }
+.decoration-3 { bottom: 20%; left: 5%; animation-delay: -4s; }
+.decoration-4 { top: 60%; right: 8%; animation-delay: -1s; }
+.decoration-5 { bottom: 10%; right: 25%; animation-delay: -3s; }
+.decoration-6 { top: 35%; left: 20%; animation-delay: -5s; }
+
+@keyframes float-optimized {
+  /* âS&  translate3d for GPU */
+  0%, 100% { 
+    transform: translate3d(0, 0, 0) rotate(0deg);
+    opacity: 0.3;
+  }
+  50% { 
+    transform: translate3d(20px, -30px, 0) rotate(10deg);
+    opacity: 0.6;
+  }
+}
+
+/* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
+   OPTIMIZED AURA EFFECTS
+   â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â"  */
+
+.aura-glow {
+  position: absolute;
+  inset: -5%;
+  border-radius: 2rem;
+  opacity: 0.15;
+  
+  /* âS&  Optimized blur */
+  filter: blur(60px);
+  
+  /* âS&  GPU hints */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  
+  animation: auraPulse-optimized 4s ease-in-out infinite;
+}
+
+@keyframes auraPulse-optimized {
+  /* âS&  Use translate3d + scale */
+  0%, 100% { 
+    transform: translate3d(0, 0, 0) scale(1); 
+    opacity: 0.15; 
+  }
+  50% { 
+    transform: translate3d(0, 0, 0) scale(1.05); 
+    opacity: 0.25; 
+  }
+}
+
+/* Level 20 rainbow aura - optimized */
+.aura-level-20 { 
+  background: linear-gradient(
+    45deg, 
+    #ff0000, #ff7300, #fffb00, #48ff00, 
+    #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000
+  );
+  background-size: 400%;
+  
+  /* âS&  Slower gradient animation */
+  animation: 
+    auraPulse-optimized 4s ease-in-out infinite, 
+    auraGradient-optimized 20s linear infinite;
+}
+
+@keyframes auraGradient-optimized {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
+   OPTIMIZED CARD ANIMATIONS
+   â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â"  */
+
+@keyframes cardEnter {
+  /* âS&  GPU-accelerated entry */
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.card {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  animation: cardEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+/* ——————————————————————————————————————————————————————————————————————————
+   OPTIMIZED BUTTON INTERACTIONS
+   —————————————————————————————————————————————————————————————————————————— */
+
+.btn-primary {
+  will-change: transform;
+  transform: translateZ(0);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.btn-primary:hover {
+  /* —&  Use translate3d */
+  transform: translate3d(0, -1px, 0) scale(1.05);
+  box-shadow: 0 6px 20px var(--shadow-md);
+}
+
+.btn-primary:active {
+  /* âS&  Smooth press */
+  transform: translate3d(0, 0, 0) scale(0.95);
+  transition: transform 0.1s ease;
+}
+
+/* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
+   OPTIMIZED TASK ANIMATIONS
+   â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â"  */
+
+.task-item {
+  /* âS&  GPU layer */
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+.task-item.entering {
+  animation: pop-optimized 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes pop-optimized {
+  /* âS&  translate3d + scale */
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.task-item.removing {
+  animation: slideOutRight-optimized 0.3s ease-in forwards;
+}
+
+@keyframes slideOutRight-optimized {
+  /* âS&  GPU-accelerated slide */
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(100px, 0, 0);
+  }
+}
+
+/* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
+   OPTIMIZED CHECKBOX ANIMATION
+   â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â"  */
+
+.custom-checkbox {
+  /* âS&  Smooth transform transitions */
+  will-change: transform;
+  transform: translateZ(0);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.custom-checkbox:hover {
+  /* âS&  GPU-accelerated scale */
+  transform: translate3d(0, 0, 0) scale(1.15);
+  box-shadow: 0 0 0 4px var(--glow-green);
+}
+
+.custom-checkbox.checked {
+  background: var(--success);
+  border-color: var(--success);
+  animation: checkPop-optimized 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 0 0 4px var(--glow-green);
+}
+
+@keyframes checkPop-optimized {
+  /* âS&  Bouncy scale with GPU */
+  0%   { transform: translate3d(0, 0, 0) scale(0.8) rotate(-10deg); }
+  40%  { transform: translate3d(0, 0, 0) scale(1.35) rotate(5deg); }
+  70%  { transform: translate3d(0, 0, 0) scale(0.9); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+
+/* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
+   PERFORMANCE MODE OVERRIDES
+   â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â"  */
+
+/* ——————————————————————————————————————————————————————————————————————————
+   PERFORMANCE MODE OVERRIDES (Optimized)
+   —————————————————————————————————————————————————————————————————————————— */
+
+:root {
+  --anim-speed: 1;
+  --transition-speed: 0.3s;
+}
+
+[data-performance="minimal"] {
+  --anim-speed: 0;
+  --transition-speed: 0.05s;
+}
+
+[data-performance="balanced"] {
+  --anim-speed: 0.7;
+  --transition-speed: 0.2s;
+}
+
+/* Specific component overrides using display: none for minimal mode (cheapest) */
+[data-performance="minimal"] .aurora-blob,
+[data-performance="minimal"] .shooting-star,
+[data-performance="minimal"] .floating-decoration,
+[data-performance="minimal"] .aura-glow,
+[data-performance="minimal"] .interactive-trail-particle {
+  display: none !important;
+}
+
+/* Balanced mode - reduced effects */
+[data-performance="balanced"] .aurora-blob {
+  filter: blur(40px);
+}
+
+[data-performance="balanced"] .shooting-star {
+  display: none;
+}
+
+/* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
+   REDUCED MOTION SUPPORT
+   â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â"  */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .aurora-blob,
+  .shooting-star,
+  .floating-decoration,
+  .aura-glow {
+    display: none !important;
   }
 }

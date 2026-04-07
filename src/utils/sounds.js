@@ -52,14 +52,21 @@ export function playChime() {
 
 export function playMeow() {
   try {
-    // We use standard HTML5 Audio so the user can easily drop an MP3 file
-    // Crucial fix: prefix with BASE_URL to prevent 404s on GitHub Pages!
     const audioPath = import.meta.env.BASE_URL + 'assets/meow.mp3';
     const audio = new Audio(audioPath);
-    audio.volume = 0.5; // Adjust volume if needed
-    audio.play().catch(e => {
-        console.warn("Meow blocked or missing:", e);
-    });
+    audio.volume = 0.5;
+    audio.play().catch(e => console.warn("Meow blocked:", e));
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+export function playMachiiSuara() {
+  try {
+    const audioPath = import.meta.env.BASE_URL + 'assets/machii_suara.mp3';
+    const audio = new Audio(audioPath);
+    audio.volume = 0.5;
+    audio.play().catch(e => console.warn("Machii suara blocked:", e));
   } catch (e) {
     console.error(e);
   }

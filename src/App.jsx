@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import Header         from './components/Header';
 import FilterBar      from './components/FilterBar';
 import TaskSection    from './components/TaskSection';
@@ -14,10 +14,10 @@ import { useGameState }  from './hooks/useGameState';
 import { useSheetsAPI }  from './hooks/useSheetsAPI';
 import { useLocalStorage } from './hooks/useLocalStorage';
 import { useDebouncedLocalStorage } from './hooks/useDebouncedLocalStorage';
+import { useCurrentDate } from './hooks/useCurrentDate';
 import { fireConfetti }  from './utils/confetti';
 import ExpenseChart   from './components/ExpenseChart';
 import WeeklyReport, { useWeeklyReportTrigger } from './components/WeeklyReport';
-import FloatingDecorations from './components/FloatingDecorations';
 import SettingsModal from './components/SettingsModal';
 import DeskBuddy from './components/DeskBuddy';
 import AuraEffect from './components/AuraEffect';
@@ -25,7 +25,10 @@ import ScrapbookModal from './components/ScrapbookModal';
 import InteractiveTrails from './components/InteractiveTrails';
 import EmoteReaction from './components/EmoteReaction';
 import StickerManager from './components/StickerManager';
-import SkyEffects from './components/SkyEffects';
+
+// Lazy load decorative components
+const SkyEffects = lazy(() => import('./components/SkyEffects'));
+const FloatingDecorations = lazy(() => import('./components/FloatingDecorations'));
 
 
 export default function App() {
@@ -38,6 +41,13 @@ export default function App() {
   const handleSwitchCharacter = useCallback(() => {
     setCurrentCharacter(prev => prev === 'cat' ? 'human' : 'cat');
   }, [setCurrentCharacter]);
+
+  const currentDate = useCurrentDate();
+  
+  // Default rendering flags (feature disabled)
+  const shouldRenderDecorations = true;
+  const shouldRenderSkyEffects = true;
+  const shouldRenderAuraEffects = true;
 
   const [showWelcome, setShowWelcome] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
@@ -233,8 +243,7 @@ export default function App() {
   // ── Daily Task Check (Penalty for missed tasks) ──────────────────────────
   useEffect(() => {
     if (!ready) return;
-
-    const today = new Date().toLocaleDateString('en-CA');
+    const today = currentDate.isoDate;
     const lastCheck = localStorage.getItem('dlt_lastTaskCheck');
 
     if (lastCheck !== today) {
@@ -340,7 +349,7 @@ export default function App() {
   // ── Expense handlers ──────────────────────────────────────────────────────
   const handleAddExpense = useCallback(async (name, amount) => {
     const tempId = 'temp-' + Date.now();
-    const tempExpense = { id: tempId, name, amount, date: new Date().toLocaleDateString('en-CA') };
+    const tempExpense = { id: tempId, name, amount, date: currentDate.isoDate };
     
     const prevExpenses = [...expenses];
     const prevExp = exp;
@@ -431,8 +440,16 @@ export default function App() {
       style={{ background: 'var(--bg)', transition: 'background 0.3s ease', position: 'relative', overflow: 'hidden' }}
     >
       {/* ── Decorative elements ── */}
-      <SkyEffects theme={theme} />
-      <FloatingDecorations theme={theme} />
+      {shouldRenderSkyEffects && (
+        <Suspense fallback={null}>
+          <SkyEffects theme={theme} />
+        </Suspense>
+      )}
+      {shouldRenderDecorations && (
+        <Suspense fallback={null}>
+          <FloatingDecorations theme={theme} />
+        </Suspense>
+      )}
 
       <div className="deco-blob deco-blob-1" aria-hidden="true" />
       <div className="deco-blob deco-blob-2" aria-hidden="true" />
@@ -455,18 +472,16 @@ export default function App() {
               onThemeChange={setTheme}
             />
           </div>
-          <div className="header-date-card card p-4 md:p-5">
-            <p className="text-[10px] font-semibold uppercase tracking-wider mb-1" style={{ color: 'var(--muted)' }}>
-              {new Date().toLocaleDateString('id-ID', { weekday: 'long' })}
+          <div className="header-date-card card p-3.5 md:p-5 flex flex-col items-center justify-center min-w-[80px] md:min-w-[100px] border-none shadow-sm relative overflow-hidden">
+            <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider mb-0.5 md:mb-1 opacity-70" style={{ color: 'var(--text)' }}>
+              {currentDate.weekday}
             </p>
-            <p className="text-3xl font-bold leading-none" style={{ color: 'var(--text)', letterSpacing: '-0.03em' }}>
-              {new Date().getDate()}
+            <p className="text-2xl md:text-3xl font-black leading-none mb-0.5 md:mb-1" style={{ color: 'var(--accent)' }}>
+              {currentDate.day}
             </p>
-            <p className="text-xs font-medium mt-0.5" style={{ color: 'var(--muted)' }}>
-              {new Date().toLocaleDateString('id-ID', { month: 'long', year: 'numeric' })}
+            <p className="text-[10px] md:text-xs font-bold opacity-80" style={{ color: 'var(--text)' }}>
+              {currentDate.monthYear}
             </p>
-            <div className="mt-3 h-px" style={{ background: 'var(--border)' }} />
-            <p className="text-xs font-semibold mt-3 text-center" style={{ color: 'var(--success)' }}>✨ Semangat!</p>
           </div>
         </div>
 
@@ -509,7 +524,7 @@ export default function App() {
             levelInfo={levelInfo} 
             darkMode={darkMode}
             currentCharacter={currentCharacter}
-            tasksCompletedToday={tasks.filter(t => t.status === 'done' && t.date === new Date().toLocaleDateString('en-CA')).length}
+            tasksCompletedToday={tasks.filter(t => t.status === 'done' && t.date === currentDate.isoDate).length}
           />
         </div>
 
@@ -564,16 +579,16 @@ export default function App() {
                   icon="📋"
                   label="Tasks"
                   value={tasks.filter(t => {
-                    const today = new Date().toDateString();
-                    return new Date(t.date).toDateString() === today;
+                    const today = currentDate.isoDate;
+                    return t.date === today;
                   }).length}
                 />
                 <StatTile
                   icon="✅"
                   label="Selesai"
                   value={tasks.filter(t => {
-                    const today = new Date().toDateString();
-                    return t.status === 'done' && new Date(t.date).toDateString() === today;
+                    const today = currentDate.isoDate;
+                    return t.status === 'done' && t.date === today;
                   }).length}
                 />
                 <StatTile
@@ -648,7 +663,7 @@ export default function App() {
       )}
 
       {/* ── Desk Buddy & Auras ── */}
-      <AuraEffect level={levelInfo.level} />
+      {shouldRenderAuraEffects && <AuraEffect level={levelInfo.level} />}
 
       {/* ── Scrapbook Modal ── */}
       {showScrapbook && (

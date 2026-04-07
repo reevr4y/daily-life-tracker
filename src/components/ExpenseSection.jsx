@@ -1,17 +1,43 @@
-import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { filterByPeriod, getTotalSpending, formatCurrency } from '../utils/insights';
 import { playPop } from '../utils/sounds';
 import ExpenseItem from './ExpenseItem';
 
-export default function ExpenseSection({ expenses, filter, onAdd, onDelete, onToast }) {
+function useDebouncedValue(value, delay) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  
+  return debouncedValue;
+}
+
+const ExpenseSection = memo(function ExpenseSection({ expenses, filter, onAdd, onDelete, onToast }) {
   const [name, setName]     = useState('');
   const [amount, setAmount] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionsRef = useRef(null);
 
-  const filtered = filterByPeriod(expenses, filter);
-  const total    = getTotalSpending(filtered);
+  // Memoize filtered expenses
+  const filtered = useMemo(() => 
+    filterByPeriod(expenses, filter),
+    [expenses, filter]
+  );
+  
+  // Memoize total
+  const total = useMemo(() => 
+    getTotalSpending(filtered),
+    [filtered]
+  );
+
+  // Debounce name for suggestion filtering
+  const debouncedName = useDebouncedValue(name, 150);
 
   // Close suggestions when clicking outside
   useEffect(() => {
@@ -51,12 +77,12 @@ export default function ExpenseSection({ expenses, filter, onAdd, onDelete, onTo
   }, [expenses]);
 
   const filteredSuggestions = useMemo(() => {
-    const search = name.trim().toLowerCase();
+    const search = debouncedName.trim().toLowerCase();
     if (!search) return suggestionsData.slice(0, 6);
     return suggestionsData
       .filter(s => s.name.toLowerCase().includes(search))
       .slice(0, 6);
-  }, [suggestionsData, name]);
+  }, [suggestionsData, debouncedName]);
 
   const handleSelectSuggestion = (suggestedName) => {
     setName(suggestedName);
@@ -185,4 +211,6 @@ export default function ExpenseSection({ expenses, filter, onAdd, onDelete, onTo
       )}
     </div>
   );
-}
+});
+
+export default ExpenseSection;
