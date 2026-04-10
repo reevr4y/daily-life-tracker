@@ -90,23 +90,6 @@ Reward kecil setiap task selesai — karena merayakan hal kecil itu penting.
 
 ---
 
-## 🏆 Level Titles
-
-| Level | Title | EXP |
-|:---:|---|:---:|
-| 1 | 🌱 Newbie | 0 |
-| 2 | 🔍 Curious | 50 |
-| 3 | 📅 Consistent | 120 |
-| 4 | 🎯 Focused | 220 |
-| 5 | ⚡ Productive | 350 |
-| 6 | 🧘 Disciplined | 520 |
-| 7 | 💪 Dedicated | 730 |
-| 8 | ⚙️ Efficient | 980 |
-| 9 | 🔮 Master | 1.280 |
-| 10 | 👑 Legend | 1.650 |
-
----
-
 ## 📁 Struktur Project
 
 ```
