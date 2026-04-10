@@ -23,7 +23,7 @@
         <img src="https://github.com/reevr4y.png" width="80px" style="border-radius:50%"/><br/>
         <sub><b>reevr4y</b></sub>
       </a><br/>
-      💻 yang bikin
+      💻 yang buat
     </td>
     <td align="center">
       <a href="https://github.com/heavensec">
