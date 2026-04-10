@@ -16,6 +16,27 @@
 
 <br/>
 
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/reevr4y">
+        <img src="https://github.com/reevr4y.png" width="80px" style="border-radius:50%"/><br/>
+        <sub><b>reevr4y</b></sub>
+      </a><br/>
+      💻 yang bikin
+    </td>
+    <td align="center">
+      <a href="https://github.com/heavensec">
+        <img src="https://github.com/heavensec.png" width="80px" style="border-radius:50%"/><br/>
+        <sub><b>heavensec</b></sub>
+      </a><br/>
+      🌸 yang dibuatin
+    </td>
+  </tr>
+</table>
+
+<br/>
+
 </div>
 
 ---
@@ -111,29 +132,6 @@ src/
     ├── HistoryModal.jsx     ← Riwayat lengkap
     └── WeeklyReport.jsx     ← Laporan mingguan
 ```
-
----
-
-## 🌿 Kontributor
-
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/reevr4y">
-        <img src="https://github.com/reevr4y.png" width="80px" style="border-radius:50%"/><br/>
-        <sub><b>reevr4y</b></sub>
-      </a><br/>
-      💻 yang bikin
-    </td>
-    <td align="center">
-      <a href="https://github.com/heavensec">
-        <img src="https://github.com/heavensec.png" width="80px" style="border-radius:50%"/><br/>
-        <sub><b>heavensec</b></sub>
-      </a><br/>
-      🌸 yang dibuatin
-    </td>
-  </tr>
-</table>
 
 ---
 
