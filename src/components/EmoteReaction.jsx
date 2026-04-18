@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { playRandomEmoteSound } from '../utils/sounds';
 
 const EMOTES = ['💖', '😆', '🎉', '😺', '✨', '💅', '😭', '🔥', '🌈', '🦄'];
@@ -6,11 +6,12 @@ const EMOTES = ['💖', '😆', '🎉', '😺', '✨', '💅', '😭', '🔥', '
 const EmoteReaction = React.memo(function EmoteReaction({ onAddExp }) {
   const [activeEmotes, setActiveEmotes] = useState([]);
   const lastClickRef = useRef(0);
+  const intervalRef = useRef(null);
 
   const handleSpam = useCallback(() => {
     const now = Date.now();
-    // Rate limit: Max 10 per second to prevent DOM explosion
-    if (now - lastClickRef.current < 100) return;
+    // Maintain a safe rate limit even when automated
+    if (now - lastClickRef.current < 80) return;
     lastClickRef.current = now;
 
     // Play sound
@@ -22,19 +23,44 @@ const EmoteReaction = React.memo(function EmoteReaction({ onAddExp }) {
     // Create new emote object
     const id = Math.random().toString(36).substr(2, 9);
     const emoji = EMOTES[Math.floor(Math.random() * EMOTES.length)];
-    const driftX = (Math.random() - 0.5) * 80; // drift left/right
-    const angle = (Math.random() - 0.5) * 40; // random rotation
-    const duration = 1 + Math.random(); // 1s - 2s
+    const driftX = (Math.random() - 0.5) * 120; // slightly wider drift
+    const angle = (Math.random() - 0.5) * 60; // more rotation variety
+    const duration = 1.2 + Math.random() * 0.8; // 1.2s - 2s
 
     const newEmote = { id, emoji, driftX, angle, duration };
 
-    setActiveEmotes((prev) => [...prev, newEmote]);
+    setActiveEmotes((prev) => {
+      // Limit max active emotes for performance
+      if (prev.length > 25) return [...prev.slice(1), newEmote];
+      return [...prev, newEmote];
+    });
 
     // Cleanup after animation
     setTimeout(() => {
       setActiveEmotes((prev) => prev.filter((e) => e.id !== id));
     }, duration * 1000);
   }, [onAddExp]);
+
+  const startContinuousSpam = (e) => {
+    if (e) e.preventDefault();
+    handleSpam();
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(handleSpam, 100);
+  };
+
+  const stopContinuousSpam = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   return (
     <div className="action-dock-item emote-dock">
@@ -58,7 +84,11 @@ const EmoteReaction = React.memo(function EmoteReaction({ onAddExp }) {
 
       {/* Main Spam Button */}
       <button
-        onClick={handleSpam}
+        onMouseDown={startContinuousSpam}
+        onMouseUp={stopContinuousSpam}
+        onMouseLeave={stopContinuousSpam}
+        onTouchStart={startContinuousSpam}
+        onTouchEnd={stopContinuousSpam}
         className="dock-btn"
         aria-label="Send Emote Reaction"
         title="Spam for +1 EXP!"
@@ -70,4 +100,5 @@ const EmoteReaction = React.memo(function EmoteReaction({ onAddExp }) {
 });
 
 export default EmoteReaction;
+
 

@@ -58,11 +58,15 @@ export default function DeskBuddy({ tasksCompletedToday = 0, darkMode = false, c
     }
   }, [tasksCompletedToday]);
 
-  // ✅ OPTIMIZED: Mouse tracking with singleton hook + RAF pause
+  const mousePosRef = useRef({ x: 0, y: 0 });
+
+  // Use singleton hook for global mouse tracking
+  useMousePosition((x, y) => {
+    mousePosRef.current = { x, y };
+  });
+
+  // ✅ OPTIMIZED: RAF loop for smooth eye updates
   useEffect(() => {
-    let mouseX = 0;
-    let mouseY = 0;
-    
     // Smooth eye updates via RAF
     const updateEyes = () => {
       if (!containerRef.current || isWalkingRef.current) {
@@ -74,8 +78,9 @@ export default function DeskBuddy({ tasksCompletedToday = 0, darkMode = false, c
       const catX = rect.left + rect.width / 2;
       const catY = rect.top + rect.height / 2;
       
-      const angleX = (mouseX - catX) / 100;
-      const angleY = (mouseY - catY) / 100;
+      const { x, y } = mousePosRef.current;
+      const angleX = (x - catX) / 100;
+      const angleY = (y - catY) / 100;
       
       const newX = Math.max(-8, Math.min(8, angleX * 5));
       const newY = Math.max(-5, Math.min(5, angleY * 5));
@@ -90,13 +95,6 @@ export default function DeskBuddy({ tasksCompletedToday = 0, darkMode = false, c
       
       rafRef.current = requestAnimationFrame(updateEyes);
     };
-
-    // Use singleton hook for global mouse tracking
-    useMousePosition((x, y) => {
-      if (isWalkingRef.current) return;
-      mouseX = x;
-      mouseY = y;
-    });
     
     const handleVisibility = () => {
       if (document.hidden) {

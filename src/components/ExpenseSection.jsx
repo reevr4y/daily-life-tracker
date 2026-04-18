@@ -1,5 +1,4 @@
 import { useState, useMemo, useRef, useEffect, useCallback, memo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { filterByPeriod, getTotalSpending, formatCurrency } from '../utils/insights';
 import { playPop } from '../utils/sounds';
 import ExpenseItem from './ExpenseItem';
@@ -18,9 +17,13 @@ function useDebouncedValue(value, delay) {
   return debouncedValue;
 }
 
-const ExpenseSection = memo(function ExpenseSection({ expenses, filter, onAdd, onDelete, onToast }) {
+const ExpenseSection = memo(function ExpenseSection({ 
+  expenses, filter, categories, categoryLimits, 
+  onAdd, onDelete, onToast 
+}) {
   const [name, setName]     = useState('');
   const [amount, setAmount] = useState('');
+  const [category, setCategory] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const suggestionsRef = useRef(null);
 
@@ -96,9 +99,10 @@ const ExpenseSection = memo(function ExpenseSection({ expenses, filter, onAdd, o
     if (!n || !a || a <= 0) return;
     setName('');
     setAmount('');
+    setCategory('');
     playPop();
     onToast('Jajan lagi nih 👀', 'warn');
-    await onAdd(n, a);
+    await onAdd(n, a, category || (categories[0] || 'Lainnya'));
   };
 
   const handleDeleteInternal = useCallback(async (id) => {
@@ -106,12 +110,33 @@ const ExpenseSection = memo(function ExpenseSection({ expenses, filter, onAdd, o
     await onDelete(id);
   }, [onDelete]);
 
-  const itemConfig = {
-    initial: { opacity: 0, x: -10 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: 10, scale: 0.95 },
-    transition: { duration: 0.2 }
-  };
+  // Calculate monthly spending per category
+  const categoryTotals = useMemo(() => {
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    const totals = {};
+    expenses.forEach(e => {
+      const d = new Date(e.date);
+      if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+        const cat = e.category || 'Lainnya';
+        totals[cat] = (totals[cat] || 0) + Number(e.amount);
+      }
+    });
+    return totals;
+  }, [expenses]);
+
+  const warnings = useMemo(() => {
+    if (!categoryLimits) return [];
+    return Object.entries(categoryLimits)
+      .filter(([cat, limit]) => limit > 0 && (categoryTotals[cat] || 0) >= limit)
+      .map(([cat, limit]) => ({
+        category: cat,
+        spent: categoryTotals[cat] || 0,
+        limit
+      }));
+  }, [categoryLimits, categoryTotals]);
 
   return (
     <div className="card p-5">
@@ -127,7 +152,6 @@ const ExpenseSection = memo(function ExpenseSection({ expenses, filter, onAdd, o
           </span>
         )}
       </div>
-
       {/* Add form */}
       <form onSubmit={handleAdd} className="space-y-2 mb-4">
         <div className="suggestions-container" ref={suggestionsRef}>
@@ -162,13 +186,25 @@ const ExpenseSection = memo(function ExpenseSection({ expenses, filter, onAdd, o
             </div>
           )}
         </div>
+
+        <select
+          value={category}
+          onChange={e => setCategory(e.target.value)}
+          className="input-field py-2 text-sm w-full"
+        >
+          <option value="" disabled>Pilih Kategori...</option>
+          {categories.map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+
         <div className="flex gap-2">
           <input
             type="number"
             value={amount}
             onChange={e => setAmount(e.target.value)}
             placeholder="Nominal (Rp)"
-            className="input-field"
+            className="input-field flex-1"
             min="0"
             step="500"
           />
@@ -178,6 +214,22 @@ const ExpenseSection = memo(function ExpenseSection({ expenses, filter, onAdd, o
         </div>
       </form>
 
+      {/* Warnings */}
+      {warnings.length > 0 && (
+        <div className="mb-4 space-y-1">
+          {warnings.map(w => (
+            <div 
+              key={w.category}
+              className="px-3 py-2 rounded-xl text-[10px] font-bold flex items-center justify-between"
+              style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+            >
+              <span>⚠️ {w.category} Melebihi Batas!</span>
+              <span>{formatCurrency(w.spent)} / {formatCurrency(w.limit)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Expense list */}
       <div className="space-y-1.5 mb-4 max-h-56 overflow-y-auto overflow-x-hidden">
         {filtered.length === 0 && (
@@ -186,13 +238,13 @@ const ExpenseSection = memo(function ExpenseSection({ expenses, filter, onAdd, o
             <p>Belum ada pengeluaran.<br />Hemat banget nih!</p>
           </div>
         )}
-        <AnimatePresence mode="popLayout" initial={false}>
+        <div className="flex flex-col gap-1.5">
           {[...filtered].reverse().map(e => (
-            <motion.div key={e.id} layout {...itemConfig}>
+            <div key={e.id} className="animate-in-slide">
               <ExpenseItem expense={e} onDelete={handleDeleteInternal} />
-            </motion.div>
+            </div>
           ))}
-        </AnimatePresence>
+        </div>
       </div>
 
       {/* Total */}
@@ -214,3 +266,4 @@ const ExpenseSection = memo(function ExpenseSection({ expenses, filter, onAdd, o
 });
 
 export default ExpenseSection;
+

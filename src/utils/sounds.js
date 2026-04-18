@@ -66,7 +66,7 @@ export function playMeow() {
 export function playMachiiSuara() {
   try {
     if (!_machii) { 
-      _machii = new Audio(import.meta.env.BASE_URL + 'assets/machii_suara.mp3'); 
+      _machii = new Audio(import.meta.env.BASE_URL + 'assets/machii_suara.mp3?v=2'); 
       _machii.volume = 0.5; 
     }
     _machii.currentTime = 0;

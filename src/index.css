@@ -110,7 +110,17 @@
 /* â”€â”€â”€ Base â”€â”€â”€ */
 * { box-sizing: border-box; }
 
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { 
+    animation-duration: 0.01ms !important; 
+    animation-iteration-count: 1 !important; 
+    transition-duration: 0.01ms !important; 
+    animation-delay: 0ms !important;
+  }
+}
+
 html { scroll-behavior: smooth; }
+
 
 html, body {
   margin: 0;
@@ -150,6 +160,7 @@ html, body {
   transition: box-shadow 0.3s ease, transform 0.3s ease;
   animation: cardEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
+
 
 .card:hover {
   box-shadow: 0 8px 32px var(--shadow-md), 0 2px 8px rgba(0,0,0,0.06);
@@ -247,6 +258,16 @@ html, body {
   70%  { transform: scale(0.9); }
   100% { transform: scale(1); }
 }
+
+.animate-in-slide {
+  animation: slideInFade 0.3s ease-out both;
+}
+
+@keyframes slideInFade {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 
 /* â”€â”€â”€ Strike-through animation â”€â”€â”€ */
 .task-text {
@@ -1996,11 +2017,7 @@ html, body {
   50% { transform: scale(1.05); opacity: 0.25; }
 }
 
-@keyframes auraGradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+
 
 
 /* --- Machii Name Tag & Chat Bubble --- */
@@ -2291,7 +2308,6 @@ html, body {
   bottom: 0;
   font-size: 2.2rem;
   filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
-  will-change: transform, opacity;
   animation: emote-float var(--anim-duration, 1.5s) ease-out forwards;
   display: flex;
   flex-direction: column;
@@ -2305,6 +2321,7 @@ html, body {
   margin-bottom: -0.2rem;
   text-shadow: 0px 2px 4px var(--bg);
 }
+
 
 @keyframes emote-float {
   0% {
@@ -2390,25 +2407,7 @@ html, body {
   transform: translateZ(0);
 }
 
-@keyframes shooting-star-anim-optimized {
-  /* âS&  Use translate3d for GPU layer */
-  0% { 
-    transform: translate3d(0, 0, 0) rotate(-45deg) scaleX(0); 
-    opacity: 0; 
-  }
-  10% { 
-    transform: translate3d(0, 0, 0) rotate(-45deg) scaleX(1); 
-    opacity: 1; 
-  }
-  25% { 
-    transform: translate3d(-400px, 400px, 0) rotate(-45deg) scaleX(1); 
-    opacity: 0; 
-  }
-  100% { 
-    transform: translate3d(-400px, 400px, 0) rotate(-45deg) scaleX(1); 
-    opacity: 0; 
-  }
-}
+
 
 /* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
    OPTIMIZED FLOATING DECORATIONS
@@ -2421,7 +2420,6 @@ html, body {
   pointer-events: none;
   
   /* âS&  GPU acceleration */
-  will-change: transform;
   transform: translateZ(0);
   
   /* âS&  Slower animations reduce CPU usage */
@@ -2461,7 +2459,6 @@ html, body {
   filter: blur(60px);
   
   /* âS&  GPU hints */
-  will-change: transform, opacity;
   transform: translateZ(0);
   
   animation: auraPulse-optimized 4s ease-in-out infinite;
@@ -2494,11 +2491,7 @@ html, body {
     auraGradient-optimized 20s linear infinite;
 }
 
-@keyframes auraGradient-optimized {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
+
 
 /* â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" â" 
    OPTIMIZED CARD ANIMATIONS
@@ -2517,7 +2510,6 @@ html, body {
 }
 
 .card {
-  will-change: transform, opacity;
   transform: translateZ(0);
   animation: cardEnter 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
@@ -2527,10 +2519,10 @@ html, body {
    —————————————————————————————————————————————————————————————————————————— */
 
 .btn-primary {
-  will-change: transform;
   transform: translateZ(0);
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 
 .btn-primary:hover {
   /* —&  Use translate3d */
@@ -2550,7 +2542,6 @@ html, body {
 
 .task-item {
   /* âS&  GPU layer */
-  will-change: transform, opacity;
   transform: translateZ(0);
 }
 
@@ -2592,7 +2583,6 @@ html, body {
 
 .custom-checkbox {
   /* âS&  Smooth transform transitions */
-  will-change: transform;
   transform: translateZ(0);
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }

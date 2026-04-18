@@ -5,8 +5,8 @@ import TaskSection    from './components/TaskSection';
 import ExpenseSection from './components/ExpenseSection';
 import InsightCard    from './components/InsightCard';
 import DailyPhotoTask from './components/DailyPhotoTask';
-import HistoryModal   from './components/HistoryModal';
 import FeedbackToast, { useToast } from './components/FeedbackToast';
+
 import WelcomeCard    from './components/WelcomeCard';
 import TomorrowTaskSection from './components/TomorrowTaskSection';
 import ExpPopup, { useExpPopup } from './components/ExpPopup';
@@ -17,19 +17,23 @@ import { useDebouncedLocalStorage } from './hooks/useDebouncedLocalStorage';
 import { useCurrentDate } from './hooks/useCurrentDate';
 import { fireConfetti }  from './utils/confetti';
 import ExpenseChart   from './components/ExpenseChart';
-import WeeklyReport, { useWeeklyReportTrigger } from './components/WeeklyReport';
-import SettingsModal from './components/SettingsModal';
+import { useWeeklyReportTrigger } from './components/WeeklyReport';
 import DeskBuddy from './components/DeskBuddy';
 import AuraEffect from './components/AuraEffect';
-import ScrapbookModal from './components/ScrapbookModal';
 import InteractiveTrails from './components/InteractiveTrails';
 import EmoteReaction from './components/EmoteReaction';
 import StickerManager from './components/StickerManager';
+import { DEFAULT_ROUTINE } from './utils/constants';
+
+// Lazy load heavy components
+const HistoryModalLazy = lazy(() => import('./components/HistoryModal'));
+const WeeklyReportLazy = lazy(() => import('./components/WeeklyReport'));
+const SettingsModalLazy = lazy(() => import('./components/SettingsModal'));
+const ScrapbookModalLazy = lazy(() => import('./components/ScrapbookModal'));
+
 
 // Lazy load decorative components
 import SkyEffects from './components/SkyEffects';
-import FloatingDecorations from './components/FloatingDecorations';
-
 
 export default function App() {
   // ── Dark mode ────────────────────────────────────────────────────────────
@@ -45,7 +49,7 @@ export default function App() {
   const currentDate = useCurrentDate();
   
   // Default rendering flags (feature enabled)
-  const shouldRenderDecorations = true;
+  const shouldRenderDecorations = false;
   const shouldRenderSkyEffects = true;
   const shouldRenderAuraEffects = true;
 
@@ -57,7 +61,8 @@ export default function App() {
     daily: 100000,
     weekly: 700000,
     monthly: 2000000,
-    stickers: []
+    stickers: [],
+    routine: DEFAULT_ROUTINE
   }, 1000);
   
   const handleUpdateStickers = useCallback((updater) => {
@@ -83,7 +88,10 @@ export default function App() {
   const [tasks,    setTasks]    = useState([]);
   const [expenses, setExpenses] = useState([]);
   const [papHistory, setPapHistory] = useState([]);
+  const [categories, setCategories] = useState(["Makanan", "Skincare", "Transport", "Hiburan", "Lainnya"]);
+  const [categoryLimits, setCategoryLimits] = useState({});
   const [ready,    setReady]    = useState(false);
+  const [isPapDone, setIsPapDone] = useState(false);
 
   const {
     loading,
@@ -100,7 +108,10 @@ export default function App() {
     saveStreakToSheets,
     fetchGameState,
     updateGameState,
+    fetchCategorySettings,
+    saveCategorySettings,
   } = useSheetsAPI();
+
 
   const isSyncingRef = useRef(false);
   const syncTimeoutRef = useRef(null);
@@ -182,7 +193,10 @@ export default function App() {
               timestamp: remotePap.timestamp || '',
             }));
             window.dispatchEvent(new Event('pap-synced'));
+            setIsPapDone(true);
           }
+        } else {
+          setIsPapDone(true);
         }
       } catch (e) {
         console.warn('[PAP Sync] Failed to sync from Sheets:', e);
@@ -196,10 +210,16 @@ export default function App() {
         console.warn('[PAP History] Failed to fetch full history:', e);
       }
 
-      console.log('[App] Initial load complete. Setting ready to true.');
+      // ── Category Settings Sync ──
+      try {
+        const { categories: cats, categoryLimits: lims } = await fetchCategorySettings();
+        if (cats) setCategories(cats);
+        if (lims) setCategoryLimits(lims);
+      } catch (e) {
+        console.warn('[Category Sync] Failed to fetch category settings:', e);
+      }
+
       setReady(true);
-
-
     })();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -282,13 +302,53 @@ export default function App() {
     }
   }, [ready, tasks, addExp, addToast, apiUpdateTask]);
 
+  // ── Routine Injection ──
+  useEffect(() => {
+    if (!ready) return;
+    const today = currentDate.isoDate;
+    const lastInjection = localStorage.getItem('dlt_lastRoutineInjection');
+    
+    if (lastInjection !== today) {
+      const routine = settings?.routine || DEFAULT_ROUTINE;
+      // Filter routine that already exists for today to avoid duplicates
+      const todayTasksTitles = tasks.filter(t => t.date === today).map(t => t.title);
+      const toInject = routine.filter(title => !todayTasksTitles.includes(title));
+
+      if (toInject.length > 0) {
+        // Mark as injected immediately to prevent re-runs
+        localStorage.setItem('dlt_lastRoutineInjection', today);
+        
+        // Add all at once optimistically
+        const tempTasks = toInject.map(title => ({
+          id: 'temp-routine-' + Math.random().toString(36).slice(2, 9),
+          title,
+          date: today,
+          status: 'pending'
+        }));
+        
+        setTasks(prev => [...tempTasks, ...prev]);
+
+        // Sync each to cloud (in background)
+        toInject.forEach(async (title, idx) => {
+          try {
+            const task = await apiAddTask(title, today);
+            setTasks(prev => prev.map(t => t.id === tempTasks[idx].id ? task : t));
+          } catch (err) {
+            // If failed, we just leave it as temp or remove it? Removal is safer if it's a routine sync.
+            // But let's keep it simple for now. 
+            console.error('[Routine] Failed to sync routine task:', title, err);
+          }
+        });
+      } else {
+        localStorage.setItem('dlt_lastRoutineInjection', today);
+      }
+    }
+  }, [ready, settings, currentDate.isoDate, apiAddTask, tasks]); // Still depends on tasks but we set localStorage first.
+
   // ── Task handlers ─────────────────────────────────────────────────────────
   const handleAddTask = useCallback(async (title, date) => {
     const tempId = 'temp-' + Date.now();
     const tempTask = { id: tempId, title, date, status: 'pending' };
-    
-    // Save previous state for rollback
-    const prevTasks = [...tasks];
     
     // Optimistic update
     setTasks(prev => [tempTask, ...prev]);
@@ -298,10 +358,11 @@ export default function App() {
       // Replace temp with real ID from server
       setTasks(prev => prev.map(t => t.id === tempId ? task : t));
     } catch (err) {
-      setTasks(prevTasks);
+      // Rollback is harder without closure over tasks, but we can do it!
+      setTasks(prev => prev.filter(t => t.id !== tempId));
       addToast('Gagal nambah tugas 😭 Coba lagi ya!', 'error');
     }
-  }, [apiAddTask, tasks, addToast]);
+  }, [apiAddTask, addToast]);
 
   const handleCompleteTask = useCallback(async (id) => {
     // Save previous state for rollback
@@ -352,9 +413,9 @@ export default function App() {
   }, [apiDeleteTask, tasks, addToast]);
 
   // ── Expense handlers ──────────────────────────────────────────────────────
-  const handleAddExpense = useCallback(async (name, amount) => {
+  const handleAddExpense = useCallback(async (name, amount, category) => {
     const tempId = 'temp-' + Date.now();
-    const tempExpense = { id: tempId, name, amount, date: currentDate.isoDate };
+    const tempExpense = { id: tempId, name, amount, date: currentDate.isoDate, category: category || '' };
     
     const prevExpenses = [...expenses];
     const prevExp = exp;
@@ -373,7 +434,7 @@ export default function App() {
     }
 
     try {
-      const expense = await apiAddExpense(name, amount);
+      const expense = await apiAddExpense(name, amount, category);
       setExpenses(prev => prev.map(e => e.id === tempId ? expense : e));
     } catch (err) {
       setExpenses(prevExpenses);
@@ -403,10 +464,8 @@ export default function App() {
     return record;
   }, [apiAddPap, fetchPapHistory]);
 
-  console.log('[App] Rendering. Ready:', ready, 'Theme:', theme, 'EXP:', exp);
 
   if (!ready) {
-    console.log('[App] Rendering loading screen...');
     return (
       <div
         className="min-h-screen flex items-center justify-center p-6"
@@ -442,22 +501,53 @@ export default function App() {
     );
   }
 
-  console.log('[App] Rendering main UI...');
   return (
     <div
-      className="min-h-screen"
-      style={{ background: 'var(--bg)', transition: 'background 0.3s ease', position: 'relative', overflow: 'hidden' }}
+      className={`min-h-screen transition-all duration-700 ${!isPapDone ? 'grayscale-[0.5] contrast-[0.9]' : ''}`}
+      style={{ background: 'var(--bg)', transition: 'background 0.3s ease', position: 'relative', overflow: isPapDone ? 'auto' : 'hidden' }}
     >
+      {/* ── Lock Overlay ── */}
+      {!isPapDone && ready && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 md:p-8 animate-in-fade backdrop-blur-xl bg-black/10 dark:bg-black/40">
+          <div className="max-w-md w-full animate-in-slide-up">
+            <div className="text-center mb-8 space-y-2">
+              <h1 className="text-3xl font-black tracking-tight" style={{ color: 'var(--text)' }}>
+                Satu Foto Dulu! 📸
+              </h1>
+              <p className="text-sm opacity-80" style={{ color: 'var(--muted)' }}>
+                Yuk setor muka cantikmu hari ini biar akses kebuka ✨
+              </p>
+            </div>
+            
+            <div className="shadow-2xl scale-105">
+              <DailyPhotoTask
+                onExp={addExp}
+                onToast={addToast}
+                onAddPap={handleAddPap}
+                onSaveStreak={saveStreakToSheets}
+                streak={streak}
+                onShowExpPopup={showExpPopup}
+                onSuccess={() => setIsPapDone(true)}
+              />
+            </div>
+
+            <div className="mt-8 text-center">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-40" style={{ color: 'var(--muted)' }}>
+                Wajib Absen Tiap Hari · Menjaga Streak 🔥
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
       {/* ── Decorative elements ── */}
-      {shouldRenderSkyEffects && <SkyEffects theme={theme} />}
-      {shouldRenderDecorations && <FloatingDecorations theme={theme} />}
+      {darkMode && shouldRenderSkyEffects && <SkyEffects theme={theme} />}
 
       <div className="deco-blob deco-blob-1" aria-hidden="true" />
       <div className="deco-blob deco-blob-2" aria-hidden="true" />
       <div className="deco-blob deco-blob-3" aria-hidden="true" />
 
       {/* ── Container ── */}
-      <div className="app-container">
+      <div className={`app-container transition-all duration-500 ${!isPapDone ? 'blur-md pointer-events-none opacity-50 scale-95 origin-center' : ''}`}>
 
         {/* ── Header Row: Greeting/EXP (L) + Date (R) ── */}
         <div className="header-row">
@@ -557,11 +647,17 @@ export default function App() {
             <ExpenseSection
               expenses={expenses}
               filter={filter}
+              categories={categories}
+              categoryLimits={categoryLimits}
               onAdd={handleAddExpense}
               onDelete={handleDeleteExpense}
               onToast={addToast}
             />
-            <ExpenseChart expenses={expenses} />
+            <ExpenseChart 
+              expenses={expenses} 
+              categories={categories}
+            />
+
             <TomorrowTaskSection
               tasks={tasks}
               onAdd={handleAddTask}
@@ -629,23 +725,28 @@ export default function App() {
 
       {/* ── Weekly Report Modal ── */}
       {showWeeklyReport && (
-        <WeeklyReport
-          tasks={tasks}
-          expenses={expenses}
-          streak={streak}
-          exp={exp}
-          onClose={dismissWeekly}
-        />
+        <Suspense fallback={null}>
+          <WeeklyReportLazy
+            tasks={tasks}
+            expenses={expenses}
+            streak={streak}
+            exp={exp}
+            onClose={dismissWeekly}
+          />
+        </Suspense>
       )}
 
       {/* ── History Modal ── */}
       {showHistory && (
-        <HistoryModal
-          tasks={tasks}
-          expenses={expenses}
-          onClose={() => setShowHistory(false)}
-        />
+        <Suspense fallback={null}>
+          <HistoryModalLazy
+            tasks={tasks}
+            expenses={expenses}
+            onClose={() => setShowHistory(false)}
+          />
+        </Suspense>
       )}
+
 
       {/* ── EXP Popups ── */}
       <ExpPopup popups={expPopups} />
@@ -655,28 +756,40 @@ export default function App() {
 
       {/* ── Settings Modal ── */}
       {showSettings && (
-        <SettingsModal
-          settings={settings}
-          setSettings={setSettings}
-          onClose={() => setShowSettings(false)}
-          onToast={addToast}
-        />
+        <Suspense fallback={null}>
+          <SettingsModalLazy
+            settings={settings}
+            setSettings={setSettings}
+            categories={categories}
+            setCategories={setCategories}
+            categoryLimits={categoryLimits}
+            setCategoryLimits={setCategoryLimits}
+            onSaveSettings={saveCategorySettings}
+            onClose={() => setShowSettings(false)}
+            onToast={addToast}
+          />
+        </Suspense>
       )}
+
+
 
       {/* ── Desk Buddy & Auras ── */}
       {shouldRenderAuraEffects && <AuraEffect level={levelInfo.level} />}
 
       {/* ── Scrapbook Modal ── */}
       {showScrapbook && (
-        <ScrapbookModal
-          onClose={() => setShowScrapbook(false)}
-          papRecords={papHistory}
-          onRefresh={async () => {
-            const h = await fetchPapHistory();
-            setPapHistory(h || []);
-          }}
-        />
+        <Suspense fallback={null}>
+          <ScrapbookModalLazy
+            onClose={() => setShowScrapbook(false)}
+            papRecords={papHistory}
+            onRefresh={async () => {
+              const h = await fetchPapHistory();
+              setPapHistory(h || []);
+            }}
+          />
+        </Suspense>
       )}
+
 
       {/* ── Sticker Manager ── */}
       <StickerManager 

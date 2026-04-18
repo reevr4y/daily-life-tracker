@@ -1,8 +1,18 @@
 import { useState, useEffect, memo } from 'react';
 import { playPop } from '../utils/sounds';
+import { DEFAULT_ROUTINE } from '../utils/constants';
 
-export default memo(function SettingsModal({ settings, setSettings, onClose, onToast }) {
+export default memo(function SettingsModal({ 
+  settings, setSettings, 
+  categories, setCategories, 
+  categoryLimits, setCategoryLimits, 
+  onSaveSettings, onClose, onToast 
+}) {
   const [localSettings, setLocalSettings] = useState(settings);
+  const [localCats, setLocalCats] = useState(categories || []);
+  const [localLimits, setLocalLimits] = useState(categoryLimits || {});
+  const [newCat, setNewCat] = useState('');
+  const [newRoutine, setNewRoutine] = useState('');
   const [animate, setAnimate] = useState(false);
 
   useEffect(() => {
@@ -12,9 +22,72 @@ export default memo(function SettingsModal({ settings, setSettings, onClose, onT
 
   const handleSave = () => {
     setSettings(localSettings);
+    setCategories(localCats);
+    setCategoryLimits(localLimits);
+    
+    if (onSaveSettings) {
+      onSaveSettings({ 
+        categories: localCats, 
+        categoryLimits: localLimits 
+      });
+    }
+
     playPop();
     onToast('Pengaturan disimpan! ✨', 'success');
     handleClose();
+  };
+
+  const addCategory = () => {
+    const name = newCat.trim();
+    if (!name) return;
+    if (localCats.includes(name)) {
+      onToast('Kategori sudah ada!', 'warn');
+      return;
+    }
+    setLocalCats([...localCats, name]);
+    setNewCat('');
+    playPop();
+  };
+
+  const removeCategory = (name) => {
+    if (localCats.length <= 1) {
+      onToast('Minimal harus ada 1 kategori!', 'warn');
+      return;
+    }
+    setLocalCats(localCats.filter(c => c !== name));
+    playPop();
+  };
+
+  const updateLimit = (cat, val) => {
+    const num = parseInt(val) || 0;
+    setLocalLimits({ ...localLimits, [cat]: num });
+  };
+
+  const addRoutine = () => {
+    const name = newRoutine.trim();
+    if (!name) return;
+    const currentRoutine = localSettings.routine || DEFAULT_ROUTINE;
+    if (currentRoutine.includes(name)) {
+      onToast('Tugas sudah ada di rutinitas!', 'warn');
+      return;
+    }
+    setLocalSettings({ ...localSettings, routine: [...currentRoutine, name] });
+    setNewRoutine('');
+    playPop();
+  };
+
+  const removeRoutine = (name) => {
+    const currentRoutine = localSettings.routine || DEFAULT_ROUTINE;
+    setLocalSettings({ ...localSettings, routine: currentRoutine.filter(r => r !== name) });
+    playPop();
+  };
+
+  const resetRoutine = () => {
+    if (confirm('Reset rutinitas ke setelan awal?')) {
+      setLocalSettings({ ...localSettings, routine: DEFAULT_ROUTINE });
+      playPop();
+      onToast('Rutinitas di-reset ke default! ✨', 'success');
+    }
   };
 
   const handleClose = () => {
@@ -97,6 +170,116 @@ export default memo(function SettingsModal({ settings, setSettings, onClose, onT
               }}
               className="input-field"
             />
+          </div>
+
+          <div className="pt-4 border-t border-dashed" style={{ borderColor: 'var(--border)' }}>
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-xs font-bold px-1 uppercase tracking-wider block" style={{ color: 'var(--muted)' }}>
+                Rutinitas Harian 📋
+              </label>
+              <button 
+                onClick={resetRoutine}
+                className="text-[10px] font-bold px-2 py-1 rounded bg-black/5 dark:bg-white/5 hover:bg-red-500/10 text-red-500 transition-colors"
+              >
+                Reset Default
+              </button>
+            </div>
+            
+            <div className="max-h-[200px] overflow-y-auto space-y-2 mb-4 pr-1 custom-scrollbar">
+              {(localSettings.routine || DEFAULT_ROUTINE).map((item, idx) => (
+                <div key={`${item}-${idx}`} className="flex items-center gap-2 group">
+                  <div className="flex-1 px-3 py-2 rounded-lg text-sm bg-black/5 dark:bg-white/5 border border-transparent">
+                    {item}
+                  </div>
+                  <button 
+                    onClick={() => removeRoutine(item)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-500/10 text-red-500 opacity-40 group-hover:opacity-100 transition-all"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <input 
+                type="text"
+                value={newRoutine}
+                onChange={e => setNewRoutine(e.target.value)}
+                onKeyPress={e => e.key === 'Enter' && addRoutine()}
+                placeholder="Tambah rutinitas..."
+                className="input-field py-2 text-sm"
+              />
+              <button 
+                onClick={addRoutine}
+                className="px-4 py-2 rounded-lg bg-accent text-white font-bold text-xs"
+              >
+                Tambah
+              </button>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-dashed" style={{ borderColor: 'var(--border)' }}>
+            <label className="text-xs font-bold px-1 uppercase tracking-wider block mb-3" style={{ color: 'var(--muted)' }}>
+              Kategori Pengeluaran
+            </label>
+            
+            <div className="space-y-2 mb-4">
+              {localCats.map(cat => (
+                <div key={cat} className="flex items-center gap-2 group">
+                  <div className="flex-1 px-3 py-2 rounded-lg text-sm bg-black/5 dark:bg-white/5 border border-transparent">
+                    {cat}
+                  </div>
+                  <button 
+                    onClick={() => removeCategory(cat)}
+                    className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-red-500/10 text-red-500 opacity-40 group-hover:opacity-100 transition-all"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
+              <input 
+                type="text"
+                value={newCat}
+                onChange={e => setNewCat(e.target.value)}
+                onKeyPress={e => e.key === 'Enter' && addCategory()}
+                placeholder="Kategori baru..."
+                className="input-field py-2 text-sm"
+              />
+              <button 
+                onClick={addCategory}
+                className="px-4 py-2 rounded-lg bg-accent text-white font-bold text-xs"
+              >
+                Tambah
+              </button>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-dashed" style={{ borderColor: 'var(--border)' }}>
+            <label className="text-xs font-bold px-1 uppercase tracking-wider block mb-3" style={{ color: 'var(--muted)' }}>
+              Batas per Kategori (IDR)
+            </label>
+            
+            <div className="space-y-3">
+              {localCats.map(cat => (
+                <div key={cat} className="space-y-1">
+                  <div className="text-[10px] font-bold px-1 opacity-60" style={{ color: 'var(--text)' }}>
+                    {cat}
+                  </div>
+                  <input 
+                    type="number"
+                    min="0"
+                    value={localLimits[cat] || ''}
+                    onChange={e => updateLimit(cat, e.target.value)}
+                    placeholder="Tidak ada batas"
+                    className="input-field py-1.5 text-xs"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
 
 

@@ -5,6 +5,9 @@ import { SHEETS_API_URL } from '../config';
 const LS_TASKS    = 'dlt_tasks';
 const LS_EXPENSES = 'dlt_expenses';
 const LS_PAP      = 'dlt_pap_history';
+const LS_CATEGORIES = 'dlt_categories';
+const LS_LIMITS     = 'dlt_category_limits';
+const DEFAULT_CATEGORIES = ["Makanan", "Skincare", "Transport", "Hiburan", "Lainnya"];
 
 function lsGet(key) {
   try { return JSON.parse(localStorage.getItem(key)) || []; }
@@ -194,8 +197,8 @@ export function useSheetsAPI() {
     return cached;
   }, [useSheets]);
 
-  const addExpense = useCallback(async (name, amount) => {
-    const expense = { id: makeId(), name, amount: Number(amount), date: todayIso() };
+  const addExpense = useCallback(async (name, amount, category) => {
+    const expense = { id: makeId(), name, amount: Number(amount), date: todayIso(), category: category || '' };
     const expenses = lsGet(LS_EXPENSES);
     lsSet(LS_EXPENSES, [expense, ...expenses]);
 
@@ -374,6 +377,65 @@ export function useSheetsAPI() {
     }
   }, [useSheets]);
 
+  // ── CATEGORY SETTINGS ────────────────────────────────────────────────────
+  const fetchCategorySettings = useCallback(async () => {
+    // 1. Get from localStorage as fallback
+    let categories = lsGet(LS_CATEGORIES);
+    if (!Array.isArray(categories) || categories.length === 0) {
+      categories = DEFAULT_CATEGORIES;
+    }
+    
+    let limits = {};
+    try {
+      limits = JSON.parse(localStorage.getItem(LS_LIMITS)) || {};
+    } catch(e) {}
+
+    // 2. Try Sheets
+    if (useSheets) {
+      try {
+        const remote = await sheetsRead('categorySettings');
+        if (Array.isArray(remote)) {
+          const catsObj = remote.find(r => r.key === 'categories');
+          const limsObj = remote.find(r => r.key === 'category_limits');
+          
+          if (catsObj && catsObj.value) {
+            categories = JSON.parse(catsObj.value);
+            lsSet(LS_CATEGORIES, categories);
+          }
+          if (limsObj && limsObj.value) {
+            limits = JSON.parse(limsObj.value);
+            localStorage.setItem(LS_LIMITS, JSON.stringify(limits));
+          }
+        }
+      } catch (e) {
+        console.warn('[Sheets] fetchCategorySettings failed:', e);
+      }
+    }
+
+    return { categories, categoryLimits: limits };
+  }, [useSheets]);
+
+  const saveCategorySettings = useCallback(async ({ categories, categoryLimits }) => {
+    // Save to localStorage
+    lsSet(LS_CATEGORIES, categories);
+    localStorage.setItem(LS_LIMITS, JSON.stringify(categoryLimits));
+
+    // Sync to Sheets
+    if (useSheets) {
+      try {
+        // Use 'insert' because Code.gs current insert logic actually appends, 
+        // and fetchGameState logic prefers the latest. 
+        // Or we could use 'update' but categorySettings doesn't have numeric IDs.
+        // Actually, Code.gs 'update' uses data[headers[0]] as ID.
+        // So action='update' for key='categories' will update that row.
+        await sheetsWrite('insert', 'categorySettings', { key: 'categories', value: JSON.stringify(categories) });
+        await sheetsWrite('insert', 'categorySettings', { key: 'category_limits', value: JSON.stringify(categoryLimits) });
+      } catch (e) {
+        console.warn('[Sheets] saveCategorySettings failed:', e);
+      }
+    }
+  }, [useSheets]);
+
   return {
     loading,
     fetchTasks,
@@ -389,5 +451,7 @@ export function useSheetsAPI() {
     saveStreakToSheets,
     fetchGameState,
     updateGameState,
+    fetchCategorySettings,
+    saveCategorySettings,
   };
-}
+};

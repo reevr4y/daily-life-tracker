@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useMemo, memo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { filterByPeriod } from '../utils/insights';
 import { fireSmallConfetti } from '../utils/confetti';
 import { playPop, playChime } from '../utils/sounds';
@@ -56,13 +55,6 @@ export default memo(function TaskSection({ tasks, filter, onAdd, onComplete, onD
     await onDelete(id);
   }, [onDelete]);
 
-  const listConfig = {
-    initial: { opacity: 0, y: 10 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, scale: 0.95 },
-    transition: { duration: 0.2 }
-  };
-
   return (
     <div className="card p-5">
       <div className="section-title">
@@ -107,36 +99,32 @@ export default memo(function TaskSection({ tasks, filter, onAdd, onComplete, onD
           </div>
         )}
 
-        <AnimatePresence mode="popLayout" initial={false}>
-          {pending.map(task => (
-            <motion.div key={task.id} layout {...listConfig}>
-              <TaskItem
-                task={task}
-                today={today}
-                onComplete={handleCompleteInternal}
-                onDelete={handleDeleteInternal}
-              />
-            </motion.div>
-          ))}
-        </AnimatePresence>
+        {pending.map(task => (
+          <div key={task.id} className="animate-in-slide">
+            <TaskItem
+              task={task}
+              today={today}
+              onComplete={handleCompleteInternal}
+              onDelete={handleDeleteInternal}
+            />
+          </div>
+        ))}
 
         {missed.length > 0 && (
           <>
             <p className="text-xs font-bold pt-4 pb-1 text-red-500 dark:text-red-400" style={{ letterSpacing: '0.05em' }}>
               LEWAT DEADLINE (MISSED) ❌
             </p>
-            <AnimatePresence mode="popLayout">
-              {missed.map(task => (
-                <motion.div key={task.id} layout {...listConfig}>
-                  <TaskItem
-                    task={task}
-                    today={today}
-                    onComplete={handleCompleteInternal}
-                    onDelete={handleDeleteInternal}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            {missed.map(task => (
+              <div key={task.id} className="animate-in-slide">
+                <TaskItem
+                  task={task}
+                  today={today}
+                  onComplete={handleCompleteInternal}
+                  onDelete={handleDeleteInternal}
+                />
+              </div>
+            ))}
           </>
         )}
 
@@ -145,21 +133,20 @@ export default memo(function TaskSection({ tasks, filter, onAdd, onComplete, onD
             <p className="text-xs font-semibold pt-4 pb-1" style={{ color: 'var(--muted)' }}>
               SELESAI · {done.length} ✅
             </p>
-            <AnimatePresence mode="popLayout">
-              {done.map(task => (
-                <motion.div key={task.id} layout {...listConfig}>
-                  <TaskItem
-                    task={task}
-                    today={today}
-                    onComplete={handleCompleteInternal}
-                    onDelete={handleDeleteInternal}
-                  />
-                </motion.div>
-              ))}
-            </AnimatePresence>
+            {done.map(task => (
+              <div key={task.id} className="animate-in-slide">
+                <TaskItem
+                  task={task}
+                  today={today}
+                  onComplete={handleCompleteInternal}
+                  onDelete={handleDeleteInternal}
+                />
+              </div>
+            ))}
           </>
         )}
       </div>
     </div>
   );
 });
+

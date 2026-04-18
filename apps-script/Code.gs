@@ -3,14 +3,15 @@
 // Deploy as Web App: Execute as Me, Access: Anyone
 // ─────────────────────────────────────────────────────────────────────────────
 
-const SHEET_NAMES = ['tasks', 'expenses', 'pap', 'streak', 'gameState'];
+const SHEET_NAMES = ['tasks', 'expenses', 'pap', 'streak', 'gameState', 'categorySettings'];
 
 const HEADERS = {
   tasks:    ['id', 'title', 'status', 'date'],
-  expenses: ['id', 'name', 'amount', 'date'],
+  expenses: ['id', 'name', 'amount', 'date', 'category'],
   pap:      ['id', 'date', 'status', 'timestamp', 'photo_url'],
   streak:   ['date', 'streak_count', 'pap_done'],
   gameState:['id', 'exp', 'streak', 'last_active', 'updated_at'],
+  categorySettings: ['key', 'value'],
 };
 
 // ── Google Drive folder for PAP photos ───────────────────────────────────────

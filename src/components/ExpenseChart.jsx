@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { formatCurrency } from '../utils/insights';
 
 // Get all days in the current month
@@ -26,19 +26,26 @@ function getDateKey(dateStr) {
 const MONTH_ID = ['Januari','Februari','Maret','April','Mei','Juni',
                   'Juli','Agustus','September','Oktober','November','Desember'];
 
-export default function ExpenseChart({ expenses }) {
+export default function ExpenseChart({ expenses, categories }) {
+  const [selectedCategory, setSelectedCategory] = useState('Semua');
   const days = useMemo(() => getDaysInMonth(), []);
+
+  // Filter expenses based on selection
+  const filteredExpenses = useMemo(() => {
+    if (selectedCategory === 'Semua') return expenses;
+    return expenses.filter(e => e.category === selectedCategory);
+  }, [expenses, selectedCategory]);
 
   // Sum expenses per day
   const daily = useMemo(() => {
     const map = {};
-    expenses.forEach(e => {
+    filteredExpenses.forEach(e => {
       const k = getDateKey(e.date);
       if (!map[k]) map[k] = 0;
       map[k] += Number(e.amount || 0);
     });
     return days.map(d => ({ date: d, amount: map[d] || 0 }));
-  }, [expenses, days]);
+  }, [filteredExpenses, days]);
 
   const maxAmount  = Math.max(...daily.map(d => d.amount), 1);
   const totalMonth = daily.reduce((s, d) => s + d.amount, 0);
@@ -65,6 +72,24 @@ export default function ExpenseChart({ expenses }) {
           {monthLabel}
         </span>
       </div>
+
+      {/* Category Filter Tabs */}
+      <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide">
+        {['Semua', ...categories].map(cat => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all ${
+              selectedCategory === cat 
+                ? 'bg-accent text-white shadow-sm' 
+                : 'bg-black/5 dark:bg-white/5 text-muted hover:bg-black/10'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
 
       {/* Summary row */}
       <div className="flex gap-3 mb-4 mt-2">

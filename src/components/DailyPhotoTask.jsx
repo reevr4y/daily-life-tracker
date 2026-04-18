@@ -79,7 +79,7 @@ function savePapState(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ date: getTodayKey(), ...safeData }));
 }
 
-export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak, streak, onShowExpPopup }) {
+export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak, streak, onShowExpPopup, onSuccess }) {
   const [papState, setPapState] = useState(() => loadPapState());
   // preview = base64 DataURL sementara (untuk ditampilkan sebelum submit)
   // setelah submit, kita pakai photo_url (Drive URL) dari papState
@@ -100,7 +100,10 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
   useEffect(() => {
     const onSync = () => {
       const synced = loadPapState();
-      if (synced) setPapState(synced);
+      if (synced) {
+        setPapState(synced);
+        if (synced.done && onSuccess) onSuccess();
+      }
     };
     window.addEventListener('pap-synced', onSync);
     return () => window.removeEventListener('pap-synced', onSync);
@@ -166,6 +169,9 @@ export default function DailyPhotoTask({ onExp, onToast, onAddPap, onSaveStreak,
     } else {
       onToast('Absen tercatat! Tapi foto gagal simpan di Drive (cek console) ⚠️ +15 EXP', 'warn');
     }
+
+    // Delay a bit to let the user see the success message before unlocking
+    if (onSuccess) setTimeout(onSuccess, 800);
 
     // ── Catat streak ke Sheets juga ───────────────────────────────────────────
     if (onSaveStreak) {
